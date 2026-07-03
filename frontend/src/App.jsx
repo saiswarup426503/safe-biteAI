@@ -42,29 +42,9 @@ export default function App() {
     }
   };
 
-  // Load restaurant details timeline when a restaurant is selected
-  const handleSelectRestaurant = async (res) => {
+  // Set selected restaurant
+  const handleSelectRestaurant = (res) => {
     setSelectedRes(res);
-    setIsLoadingDetails(true);
-    try {
-      const response = await fetch(`/api/restaurants/${res._id}`);
-      if (!response.ok) throw new Error('Failed to fetch timeline details');
-      const data = await response.json();
-      setRestaurantDetails(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoadingDetails(false);
-    }
-  };
-
-  // Sync state when merchant uploads new camera snapshots
-  const handleUploadSuccess = (updatedRes) => {
-    // Update main array listing scores
-    setRestaurants(prev => prev.map(r => r._id === updatedRes._id ? updatedRes : r));
-    
-    // Update local detail timeline
-    setRestaurantDetails(updatedRes);
   };
 
   const renderAnalytics = () => {
@@ -348,30 +328,8 @@ export default function App() {
                     streamUrl={`/api/restaurants/${selectedRes._id}/stream.m3u8`}
                     restaurantName={selectedRes.name}
                   />
+                  {/* Live Stream is active */}
                 </div>
-
-                {/* Chronological Media Ingest Timeline Module */}
-                {isLoadingDetails ? (
-                  <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem' }}>
-                    <RefreshCw size={24} className="spinner-icon" style={{ color: 'var(--color-orange)' }} />
-                  </div>
-                ) : (
-                  restaurantDetails && (
-                    <>
-                      <div className="glass-panel panel-card-container">
-                        <ComplianceTimeline 
-                          timeline={restaurantDetails.mediaUploadTimeline} 
-                        />
-                      </div>
-
-                      {/* Merchant Console Upload Portal Module */}
-                      <MerchantConsole
-                        restaurant={restaurantDetails}
-                        onUploadSuccess={handleUploadSuccess}
-                      />
-                    </>
-                  )
-                )}
               </div>
             )}
           </div>
