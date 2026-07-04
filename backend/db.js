@@ -15,6 +15,7 @@ if (!fs.existsSync(DB_DIR)) {
 }
 
 // Initial mock data to seed the database
+// Initial mock data to seed the database
 const initialSeedData = [
   {
     _id: "6677889900112233445566aa",
@@ -48,7 +49,13 @@ const initialSeedData = [
     ],
     safeBiteAIScore: 83,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString()
+    updatedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    menu: [
+      { name: "Special Chicken Biryani", price: 280, category: "Biryani", description: "Authentic fragrant Basmati rice cooked with tender spiced chicken piece." },
+      { name: "Paneer Tikka Biryani", price: 240, category: "Biryani", description: "Layered biryani with grilled cottage cheese cubes in rich masala." },
+      { name: "Chicken Lollipop (6 Pcs)", price: 220, category: "Starters", description: "Crispy fried chicken drums marinated in spicy herbs." },
+      { name: "Cold Beverage", price: 40, category: "Beverages", description: "Refreshing soft drink served chilled." }
+    ]
   },
   {
     _id: "6677889900112233445566bb",
@@ -71,7 +78,13 @@ const initialSeedData = [
     ],
     safeBiteAIScore: 100,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    menu: [
+      { name: "Classic Margherita Pizza", price: 320, category: "Pizzas", description: "Hand-stretched crust, premium mozzarella, rich marinara sauce, fresh basil." },
+      { name: "Spiced Paneer Delight Pizza", price: 380, category: "Pizzas", description: "Topped with marinated paneer, capsicum, onion, and spicy paprika." },
+      { name: "Cheesy Garlic Breadsticks", price: 160, category: "Starters", description: "Freshly baked dough loaded with cheese and brushed with garlic butter." },
+      { name: "Chocolate Lava Cake", price: 120, category: "Desserts", description: "Warm chocolate cake with a molten lava gooey center." }
+    ]
   },
   {
     _id: "6677889900112233445566cc",
@@ -79,9 +92,15 @@ const initialSeedData = [
     cctvStreamUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
     lastMediaUploadTimestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
     mediaUploadTimeline: [],
-    safeBiteAIScore: 50, // Warning badge since they missed multiple 30-min uploads
+    safeBiteAIScore: 50,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 120 * 60 * 1000).toISOString()
+    updatedAt: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
+    menu: [
+      { name: "Ghee Roast Masala Dosa", price: 110, category: "Dosa", description: "Crispy golden crepe roasted in pure ghee, filled with potato bhaji." },
+      { name: "Idli Vada Combo", price: 80, category: "Breakfast", description: "Two soft steamed rice cakes and one crispy fried lentil donut." },
+      { name: "Rava Onion Dosa", price: 120, category: "Dosa", description: "Crispy semolina crepe topped with roasted onions and green chilies." },
+      { name: "South Indian Filter Coffee", price: 45, category: "Beverages", description: "Traditional hot brewed decoction coffee frothed with milk." }
+    ]
   }
 ];
 
@@ -123,7 +142,13 @@ const RestaurantSchema = new mongoose.Schema({
       bbox: [{ type: Number }] // [x1, y1, x2, y2]
     }]
   }],
-  safeBiteAIScore: { type: Number, default: 100 }
+  safeBiteAIScore: { type: Number, default: 100 },
+  menu: [{
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    category: { type: String },
+    description: { type: String }
+  }]
 }, { timestamps: true });
 
 const MongooseRestaurant = mongoose.model('Restaurant', RestaurantSchema);

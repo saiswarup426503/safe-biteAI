@@ -1,8 +1,43 @@
-import React from "react";
-import { ShoppingBag, Calendar, ShieldCheck, Play, ArrowRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ShoppingBag, Calendar, ShieldCheck, Play, ArrowRight, Clock } from "lucide-react";
+
+function DeliveryTimer({ timestamp, duration }) {
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const start = new Date(timestamp).getTime();
+      const end = start + duration * 60 * 1000;
+      const diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      setSecondsLeft(diff);
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, [timestamp, duration]);
+
+  if (secondsLeft <= 0) {
+    return (
+      <span style={{ fontSize: "13px", color: "#18a65d", fontWeight: "600" }}>
+        ✓ Delivered! Enjoy your hygienic meal.
+      </span>
+    );
+  }
+
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const timeStr = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#FC8019", fontSize: "13px", fontWeight: "600" }}>
+      <Clock size={14} className="spinner-icon" style={{ animation: "spin 3s linear infinite" }} />
+      <span>Arriving in {timeStr}</span>
+    </div>
+  );
+}
 
 export default function Orders({ user, onWatchKitchen }) {
-  // Pull order logs from local storage or fallback to empty array
   const orderHistory = user?.orderHistory || [];
 
   return (
@@ -67,6 +102,14 @@ export default function Orders({ user, onWatchKitchen }) {
                       </span>
                       <span>Order ID: #{order.id.slice(-6).toUpperCase()}</span>
                     </div>
+
+                    {/* Estimated Delivery Countdown Timer */}
+                    <div style={{ marginTop: "6px" }}>
+                      <DeliveryTimer 
+                        timestamp={order.timestamp} 
+                        duration={order.deliveryDuration || 25} 
+                      />
+                    </div>
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
@@ -128,6 +171,16 @@ export default function Orders({ user, onWatchKitchen }) {
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spinner-icon {
+          animation: spin 3s linear infinite;
+        }
+      `}</style>
     </main>
   );
 }

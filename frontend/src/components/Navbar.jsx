@@ -1,9 +1,9 @@
 import { Home, BookOpen, Video, ShoppingBag, Store, User, LogOut } from "lucide-react";
 
-function Navbar({ activeTab, currentUser, onLogout }) {
+function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
   return (
     <header className="navbar">
-      <a href="#/" className="logo" style={{ color: "inherit", display: "flex", alignItems: "center", gap: "15px" }}>
+      <a href="#/" onClick={onHomeClick} className="logo" style={{ color: "inherit", display: "flex", alignItems: "center", gap: "15px" }}>
         <div className="logo-icon">
           🛡️
         </div>
@@ -17,6 +17,7 @@ function Navbar({ activeTab, currentUser, onLogout }) {
         <a 
           className={activeTab === "home" ? "active" : ""} 
           href="#/"
+          onClick={onHomeClick}
         >
           <Home size={18} />
           Home

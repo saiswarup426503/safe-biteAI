@@ -19,6 +19,87 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
   
   const canvasRef = useRef(null);
 
+  // Swiggy & Zomato menu management states
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
+  const [newItemCategory, setNewItemCategory] = useState("Main");
+  const [newItemDesc, setNewItemDesc] = useState("");
+  const [isUpdatingMenu, setIsUpdatingMenu] = useState(false);
+
+  const handleAddMenuItem = async (e) => {
+    e.preventDefault();
+    if (!newItemName.trim() || !newItemPrice) {
+      alert("Please provide at least a dish name and price.");
+      return;
+    }
+
+    setIsUpdatingMenu(true);
+    const newItem = {
+      name: newItemName.trim(),
+      price: parseFloat(newItemPrice),
+      category: newItemCategory.trim(),
+      description: newItemDesc.trim()
+    };
+
+    const currentMenu = restaurant.menu || [];
+    const updatedMenu = [...currentMenu, newItem];
+
+    try {
+      const response = await fetch(`/api/restaurants/${restaurant._id}/menu`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ menu: updatedMenu })
+      });
+
+      if (!response.ok) throw new Error("Failed to save menu");
+      const updatedRes = await response.json();
+      
+      // Update parent state
+      onUploadSuccess(updatedRes);
+      
+      // Reset form
+      setNewItemName("");
+      setNewItemPrice("");
+      setNewItemCategory("Main");
+      setNewItemDesc("");
+      alert("🎉 Food item added to menu successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error adding menu item: " + err.message);
+    } finally {
+      setIsUpdatingMenu(false);
+    }
+  };
+
+  const handleDeleteMenuItem = async (index) => {
+    if (!window.confirm("Are you sure you want to remove this food item from your menu?")) {
+      return;
+    }
+
+    setIsUpdatingMenu(true);
+    const currentMenu = restaurant.menu || [];
+    const updatedMenu = currentMenu.filter((_, idx) => idx !== index);
+
+    try {
+      const response = await fetch(`/api/restaurants/${restaurant._id}/menu`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ menu: updatedMenu })
+      });
+
+      if (!response.ok) throw new Error("Failed to delete menu item");
+      const updatedRes = await response.json();
+      
+      // Update parent state
+      onUploadSuccess(updatedRes);
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting menu item: " + err.message);
+    } finally {
+      setIsUpdatingMenu(false);
+    }
+  };
+
   // Set the active visualizer snapshot when the restaurant changes or a new upload occurs
   useEffect(() => {
     if (restaurant && restaurant.mediaUploadTimeline && restaurant.mediaUploadTimeline.length > 0) {
@@ -456,6 +537,158 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
               <p style={{ fontSize: "12px", marginTop: "4px" }}>Upload a camera snapshot or click a preset simulation to run verification.</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Swiggy & Zomato style Food Menu Manager */}
+      <div className="live-kitchen" style={{ position: "static", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "0", display: "flex", alignItems: "center", gap: "8px" }}>
+          📋 Swiggy & Zomato Menu Editor
+        </h3>
+        <p style={{ color: "#666", fontSize: "13px", margin: 0 }}>Add, edit, or delete items from your digital menu. Changes are instantly pushed to customer apps.</p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "30px" }}>
+          {/* Menu Items List */}
+          <div style={{ background: "#f8f7f4", padding: "20px", borderRadius: "16px", border: "1.5px solid #eee" }}>
+            <h4 style={{ margin: "0 0 15px 0", fontSize: "15px", color: "#FC8019" }}>Active Menu List</h4>
+            {restaurant.menu && restaurant.menu.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto", paddingRight: "8px" }}>
+                {restaurant.menu.map((item, index) => (
+                  <div 
+                    key={index}
+                    style={{ 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center", 
+                      padding: "12px 15px", 
+                      background: "white", 
+                      borderRadius: "12px", 
+                      border: "1px solid #e2e8f0" 
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: "600", fontSize: "14px" }}>
+                        {item.name} <span style={{ fontSize: "10px", color: "#18a65d", background: "#e9fff2", padding: "1px 6px", borderRadius: "6px", marginLeft: "6px" }}>{item.category}</span>
+                      </div>
+                      {item.description && <div style={{ fontSize: "11px", color: "#777", marginTop: "2px" }}>{item.description}</div>}
+                      <strong style={{ fontSize: "13px", color: "#FC8019", display: "block", marginTop: "2px" }}>₹{item.price}</strong>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteMenuItem(index)}
+                      disabled={isUpdatingMenu}
+                      style={{ 
+                        background: "#fff5f5", 
+                        border: "none", 
+                        color: "#e53e3e", 
+                        cursor: "pointer", 
+                        padding: "6px 10px", 
+                        borderRadius: "8px", 
+                        fontSize: "12px",
+                        fontWeight: "600"
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#888", fontSize: "13px" }}>
+                Your restaurant menu is currently empty. Add your first dish on the right!
+              </div>
+            )}
+          </div>
+
+          {/* Add New Dish Form */}
+          <form 
+            onSubmit={handleAddMenuItem}
+            style={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              gap: "12px", 
+              background: "white", 
+              padding: "20px", 
+              borderRadius: "16px", 
+              border: "1.5px solid #eee" 
+            }}
+          >
+            <h4 style={{ margin: "0 0 5px 0", fontSize: "15px", color: "#FC8019" }}>Add New Dish</h4>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Dish Name *</label>
+              <input 
+                type="text" 
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="e.g. Butter Chicken Masala"
+                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
+                required
+              />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Price (₹) *</label>
+                <input 
+                  type="number" 
+                  value={newItemPrice}
+                  onChange={(e) => setNewItemPrice(e.target.value)}
+                  placeholder="e.g. 240"
+                  style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
+                  required
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Category</label>
+                <select 
+                  value={newItemCategory}
+                  onChange={(e) => setNewItemCategory(e.target.value)}
+                  style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
+                >
+                  <option value="Main">Main</option>
+                  <option value="Starters">Starters</option>
+                  <option value="Dosa">Dosa</option>
+                  <option value="Biryani">Biryani</option>
+                  <option value="Pizzas">Pizzas</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Beverages">Beverages</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Description</label>
+              <textarea 
+                value={newItemDesc}
+                onChange={(e) => setNewItemDesc(e.target.value)}
+                placeholder="e.g. Rich creamy gravy infused with mild spices..."
+                rows="2"
+                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px", resize: "none" }}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isUpdatingMenu || isUpdatingMenu}
+              style={{ 
+                marginTop: "10px", 
+                padding: "10px", 
+                background: "#FC8019", 
+                color: "white", 
+                border: "none", 
+                borderRadius: "10px", 
+                fontWeight: "600", 
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(252,128,25,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px"
+              }}
+            >
+              {isUpdatingMenu ? "Updating..." : "Add Dish to Menu"}
+            </button>
+          </form>
         </div>
       </div>
 

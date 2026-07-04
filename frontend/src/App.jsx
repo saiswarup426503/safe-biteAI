@@ -61,9 +61,9 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return parseFloat((R * c).toFixed(1)); // Distance in km
 };
@@ -76,35 +76,34 @@ function App() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  
+
   // Real-time geolocation states
   const [userCoords, setUserCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [osmRestaurants, setOsmRestaurants] = useState([]);
 
-  // Fetch real-time restaurants in the user's location via OpenStreetMap Nominatim
+  // Fetch real-time restaurants in the user's location via backend cached proxy
   const fetchNearbyOSMRestaurants = async (lat, lng) => {
     try {
-      // Bounding box of ~4km around user coordinates to guarantee local results
-      const xmin = lng - 0.035;
-      const ymin = lat - 0.035;
-      const xmax = lng + 0.035;
-      const ymax = lat + 0.035;
-      
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=restaurant&viewbox=${xmin},${ymin},${xmax},${ymax}&bounded=1&limit=8&addressdetails=1`
+        `/api/nearby-restaurants?lat=${lat}&lng=${lng}`
       );
       if (!response.ok) throw new Error("OSM search failed");
       const data = await response.json();
-      
+
       const parsed = data.map((place, index) => {
-        const address = place.address || {};
-        const neighborhood = address.suburb || address.neighbourhood || address.city_district || address.town || "Nearby";
         const name = place.name || place.display_name.split(",")[0];
-        
+
+        // Extract exact street details from display_name (drop name if duplicated)
+        const addressParts = place.display_name.split(",");
+        if (addressParts[0].trim().toLowerCase() === name.toLowerCase()) {
+          addressParts.shift();
+        }
+        const fullStreetAddress = addressParts.slice(0, 3).map(part => part.trim()).join(", ");
+
         const cuisines = ["Cafe", "Indian", "Pizza & Pasta", "Fast Food", "Bakery & Desserts", "Biryani"];
         const cuisine = cuisines[index % cuisines.length];
-        
+
         const imageOptions = [
           "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
           "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg",
@@ -114,7 +113,7 @@ function App() {
 
         return {
           _id: `osm_${place.place_id || index}`,
-          name: `${name} (${neighborhood})`,
+          name: name, // Clean name without neighborhood suffix
           cctvStreamUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
           safeBiteAIScore: 85 + (index * 3) % 15,
           mediaUploadTimeline: [
@@ -135,7 +134,7 @@ function App() {
             rating: (4.2 + (index * 0.1) % 0.6).toFixed(1),
             reviews: `${20 + index * 40}+`,
             cuisine: cuisine,
-            location: neighborhood,
+            location: fullStreetAddress || "Nearby",
             time: `${15 + index * 5}-${20 + index * 5} mins`,
             lat: parseFloat(place.lat),
             lng: parseFloat(place.lon)
@@ -183,7 +182,7 @@ function App() {
       setActiveTab(getTabFromHash());
     };
     window.addEventListener("hashchange", handleHashChange);
-    
+
     // Set initial hash on mount if empty
     if (!window.location.hash) {
       window.location.hash = "#/";
@@ -213,7 +212,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // When restaurant list is loaded, select the first one if none is selected
+  // When restaurant list is loaded, select the first one if merchant
   useEffect(() => {
     if (restaurants.length > 0 && !selectedRes) {
       // If merchant is logged in, select their linked store first
@@ -224,7 +223,6 @@ function App() {
           return;
         }
       }
-      setSelectedRes(restaurants[0]);
     } else if (selectedRes && restaurants.length > 0) {
       // Keep the selected restaurant data updated with new polled scores
       const updated = restaurants.find(r => r._id === selectedRes._id);
@@ -263,7 +261,7 @@ function App() {
     setActiveTab("home");
   };
 
-  const handleOrderPlacement = (restaurant) => {
+  const handleOrderPlacement = (restaurant, selectedItem) => {
     if (!restaurant) {
       setActiveTab("auth");
       return;
@@ -275,7 +273,12 @@ function App() {
       "1x Premium Double Veg Cheese Burger & Fries",
       "1x Authentic South Indian Thali"
     ];
-    const randomMeal = mealOptions[Math.floor(Math.random() * mealOptions.length)];
+    const itemText = selectedItem
+      ? `1x ${selectedItem.name} (₹${selectedItem.price})`
+      : mealOptions[Math.floor(Math.random() * mealOptions.length)];
+
+    const timeStr = restaurant.meta?.time || "25 mins";
+    const minutes = parseInt(timeStr.split("-").pop()) || 25;
 
     const newOrder = {
       id: "ord_" + Date.now() + Math.random().toString(36).substr(2, 4),
@@ -283,7 +286,8 @@ function App() {
       restaurantName: restaurant.name,
       score: restaurant.safeBiteAIScore,
       timestamp: new Date().toISOString(),
-      item: randomMeal
+      item: itemText,
+      deliveryDuration: minutes
     };
 
     const updatedUser = {
@@ -294,7 +298,7 @@ function App() {
     setCurrentUser(updatedUser);
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
-    alert(`🎉 Order placed successfully at ${restaurant.name.split(" (")[0]}!\nItem: ${randomMeal}\nSafeBite is active and monitoring kitchen safety in real-time.`);
+    alert(`🎉 Order placed successfully at ${restaurant.name.split(" (")[0]}!\nItem: ${itemText}\nSafeBite is active and monitoring kitchen safety in real-time.`);
     setActiveTab("orders");
   };
 
@@ -370,31 +374,32 @@ function App() {
 
   return (
     <div className="app">
-      <Navbar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        currentUser={currentUser} 
-        onLogout={handleLogout} 
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onHomeClick={() => setSelectedRes(null)}
       />
 
       {activeTab === "home" && (
         <main className="container">
-          <Hero 
-            query={searchQuery} 
-            setQuery={setSearchQuery} 
+          <Hero
+            query={searchQuery}
+            setQuery={setSearchQuery}
             userCoords={userCoords}
             setUserCoords={setUserCoords}
             isLocating={isLocating}
             setIsLocating={setIsLocating}
           />
 
-          <Categories 
-            selectedCategory={selectedCategory} 
-            setSelectedCategory={setSelectedCategory} 
+          <Categories
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
           />
 
-          <div className="content-grid">
-            <div className="left-panel">
+          <div className="content-grid" style={{ gridTemplateColumns: "1fr" }}>
+            <div className="left-panel" style={{ width: "100%", maxWidth: "1100px", margin: "0 auto" }}>
               <div className="section-title">
                 <h2>Verified Kitchens Near You</h2>
                 <p>Trusted restaurants with AI verified hygiene</p>
@@ -413,35 +418,136 @@ function App() {
                   No restaurants found matching your criteria.
                 </div>
               ) : (
-                filteredRestaurants.map((res) => (
-                  <RestaurantCard
-                    key={res._id}
-                    image={res.meta.image}
-                    name={res.name}
-                    rating={res.meta.rating}
-                    reviews={res.meta.reviews}
-                    cuisine={res.meta.cuisine}
-                    location={res.meta.location}
-                    time={res.meta.time}
-                    score={res.safeBiteAIScore}
-                    isSelected={selectedRes?._id === res._id}
-                    onWatchKitchen={() => handleSelectRestaurant(res)}
-                    distance={res.distance}
-                  />
-                ))
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: "25px" }}>
+                  {filteredRestaurants.map((res) => (
+                    <RestaurantCard
+                      key={res._id}
+                      image={res.meta.image}
+                      name={res.name}
+                      rating={res.meta.rating}
+                      reviews={res.meta.reviews}
+                      cuisine={res.meta.cuisine}
+                      location={res.meta.location}
+                      time={res.meta.time}
+                      score={res.safeBiteAIScore}
+                      isSelected={selectedRes?._id === res._id}
+                      onWatchKitchen={() => handleSelectRestaurant(res)}
+                      distance={res.distance}
+                    />
+                  ))}
+                </div>
               )}
-            </div>
-
-            <div className="right-panel">
-              <LiveKitchen 
-                restaurant={selectedRes} 
-                currentUser={currentUser} 
-                onOrder={handleOrderPlacement} 
-              />
             </div>
           </div>
         </main>
       )}
+
+      {/* Glassmorphic Overlay Modal for Live Kitchen Feed & Food Menu */}
+      {selectedRes && activeTab === "home" && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setSelectedRes(null)} // Close when clicking backdrop
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(11, 15, 25, 0.75)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            zIndex: 1000,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            className="modal-container"
+            onClick={(e) => e.stopPropagation()} // Prevent close on modal content click
+            style={{
+              background: "white",
+              width: "100%",
+              maxWidth: "1000px",
+              maxHeight: "92vh",
+              borderRadius: "28px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative"
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: "20px 30px",
+              borderBottom: "1.5px solid #eee",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "#fafafa"
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "18px", color: "#2d2d2d", fontWeight: "700" }}>
+                  {selectedRes.name}
+                </h3>
+                <span style={{ fontSize: "12px", color: "#666" }}>
+                  📍 {selectedRes.meta?.location || "Bangalore"} • {selectedRes.meta?.cuisine || "Multi-Cuisine"}
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedRes(null)}
+                style={{
+                  background: "#eee",
+                  border: "none",
+                  color: "#333",
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 0.2s ease"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ overflowY: "auto", flex: 1, padding: "30px" }}>
+              <LiveKitchen
+                restaurant={selectedRes}
+                currentUser={currentUser}
+                onOrder={handleOrderPlacement}
+                hideHeader={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Animation rule overrides */}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(40px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-backdrop {
+          animation: fadeIn 0.25s ease-out forwards;
+        }
+        .modal-container {
+          animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
 
       {activeTab === "analytics" && (
         <Analytics restaurants={restaurants} />
@@ -452,23 +558,23 @@ function App() {
       )}
 
       {activeTab === "auth" && (
-        <Auth 
-          restaurants={restaurants} 
-          onLogin={handleLogin} 
-          onCancel={() => setActiveTab("home")} 
+        <Auth
+          restaurants={restaurants}
+          onLogin={handleLogin}
+          onCancel={() => setActiveTab("home")}
         />
       )}
 
       {activeTab === "orders" && (
-        <Orders 
-          user={currentUser} 
+        <Orders
+          user={currentUser}
           onWatchKitchen={(restId) => {
             if (restId) {
               const target = restaurants.find(r => r._id === restId);
               if (target) setSelectedRes(target);
             }
             setActiveTab("home");
-          }} 
+          }}
         />
       )}
 
@@ -479,10 +585,10 @@ function App() {
               <h2>Merchant Verification Console</h2>
               <p>Upload active back-of-house kitchen checks and trigger automated YOLOv8 compliance checks</p>
             </div>
-            
+
             {restaurants.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 3fr", gap: "30px" }}>
-                
+
                 {/* Store selection menu */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                   <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "5px" }}>Selected Store</h3>
