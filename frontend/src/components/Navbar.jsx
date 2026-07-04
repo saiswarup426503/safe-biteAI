@@ -1,14 +1,9 @@
-import { Home, UtensilsCrossed, BookOpen, Video, ShoppingBag, Store, User, LogOut } from "lucide-react";
+import { Home, BookOpen, Video, ShoppingBag, Store, User, LogOut } from "lucide-react";
 
-function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
-  const handleNavClick = (e, tab) => {
-    e.preventDefault();
-    setActiveTab(tab);
-  };
-
+function Navbar({ activeTab, currentUser, onLogout }) {
   return (
     <header className="navbar">
-      <div className="logo" style={{ cursor: "pointer" }} onClick={(e) => handleNavClick(e, "home")}>
+      <a href="#/" className="logo" style={{ color: "inherit", display: "flex", alignItems: "center", gap: "15px" }}>
         <div className="logo-icon">
           🛡️
         </div>
@@ -16,13 +11,12 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
           <h2>SafeBite AI</h2>
           <p>Trust Every Bite.</p>
         </div>
-      </div>
+      </a>
 
       <nav style={{ display: "flex", alignItems: "center", gap: "24px" }}>
         <a 
           className={activeTab === "home" ? "active" : ""} 
-          href="#"
-          onClick={(e) => handleNavClick(e, "home")}
+          href="#/"
         >
           <Home size={18} />
           Home
@@ -30,8 +24,7 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
 
         <a 
           className={activeTab === "guidelines" ? "active" : ""} 
-          href="#"
-          onClick={(e) => handleNavClick(e, "guidelines")}
+          href="#/guidelines"
         >
           <BookOpen size={18} />
           Guidelines
@@ -39,8 +32,7 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
 
         <a 
           className={activeTab === "analytics" ? "active" : ""} 
-          href="#"
-          onClick={(e) => handleNavClick(e, "analytics")}
+          href="#/analytics"
         >
           <Video size={18} />
           Analytics
@@ -50,8 +42,7 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
         {currentUser && currentUser.role === "customer" && (
           <a 
             className={activeTab === "orders" ? "active" : ""} 
-            href="#"
-            onClick={(e) => handleNavClick(e, "orders")}
+            href="#/orders"
           >
             <ShoppingBag size={18} />
             My Orders
@@ -62,8 +53,7 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
         {currentUser && currentUser.role === "merchant" && (
           <a 
             className={activeTab === "profile" ? "active" : ""} 
-            href="#"
-            onClick={(e) => handleNavClick(e, "profile")}
+            href="#/profile"
           >
             <Store size={18} />
             Merchant Portal
@@ -107,8 +97,7 @@ function Navbar({ activeTab, setActiveTab, currentUser, onLogout }) {
         ) : (
           <a 
             className={activeTab === "auth" ? "active" : ""} 
-            href="#"
-            onClick={(e) => handleNavClick(e, "auth")}
+            href="#/auth"
             style={{
               background: "#FC8019",
               color: "white",

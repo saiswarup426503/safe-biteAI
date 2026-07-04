@@ -19,7 +19,11 @@ function LiveKitchen({ restaurant, currentUser, onOrder }) {
   const [hasError, setHasError] = useState(false);
 
   // Stream URL calculation
-  const streamUrl = restaurant ? `/api/restaurants/${restaurant._id}/stream.m3u8` : null;
+  const streamUrl = restaurant
+    ? restaurant._id.startsWith("osm_")
+      ? restaurant.cctvStreamUrl || "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+      : `/api/restaurants/${restaurant._id}/stream.m3u8`
+    : null;
 
   useEffect(() => {
     const video = videoRef.current;

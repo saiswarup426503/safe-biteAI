@@ -10,7 +10,8 @@ function RestaurantCard({
   time,
   score,
   isSelected,
-  onWatchKitchen
+  onWatchKitchen,
+  distance
 }) {
   return (
     <div 
@@ -49,7 +50,7 @@ function RestaurantCard({
         <div className="meta">
           <span>
             <MapPin size={16} />
-            {location}
+            {location} {distance !== null && distance !== undefined && `(${distance} km)`}
           </span>
           <span>
             <Clock size={16} />

@@ -19,6 +19,8 @@ const restaurantMetaData = {
     cuisine: "Italian, Pizza",
     location: "Indiranagar",
     time: "30-35 mins",
+    lat: 12.9719,
+    lng: 77.6412
   },
   "Biryani Zone (BTM Layout)": {
     image: "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg",
@@ -27,6 +29,8 @@ const restaurantMetaData = {
     cuisine: "Noodles, North Indian",
     location: "BTM Layout",
     time: "25-30 mins",
+    lat: 12.9166,
+    lng: 77.6101
   },
   "Sagar Ratna (Jayanagar)": {
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
@@ -35,17 +39,124 @@ const restaurantMetaData = {
     cuisine: "Fast Food, South Indian",
     location: "Jayanagar",
     time: "20-25 mins",
+    lat: 12.9308,
+    lng: 77.5838
   }
+};
+const getTabFromHash = () => {
+  const hash = window.location.hash;
+  if (hash === "#/analytics") return "analytics";
+  if (hash === "#/guidelines") return "guidelines";
+  if (hash === "#/profile") return "profile";
+  if (hash === "#/orders") return "orders";
+  if (hash === "#/auth") return "auth";
+  return "home";
+};
+
+// Haversine formula to calculate distance in km
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return parseFloat((R * c).toFixed(1)); // Distance in km
 };
 
 function App() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRes, setSelectedRes] = useState(null);
-  const [activeTab, setActiveTab] = useState("home"); // home, analytics, guidelines, profile, orders, auth
+  const [activeTab, setActiveTab] = useState(getTabFromHash); // home, analytics, guidelines, profile, orders, auth
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  
+  // Real-time geolocation states
+  const [userCoords, setUserCoords] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [osmRestaurants, setOsmRestaurants] = useState([]);
+
+  // Fetch real-time restaurants in the user's location via OpenStreetMap Nominatim
+  const fetchNearbyOSMRestaurants = async (lat, lng) => {
+    try {
+      // Bounding box of ~4km around user coordinates to guarantee local results
+      const xmin = lng - 0.035;
+      const ymin = lat - 0.035;
+      const xmax = lng + 0.035;
+      const ymax = lat + 0.035;
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=restaurant&viewbox=${xmin},${ymin},${xmax},${ymax}&bounded=1&limit=8&addressdetails=1`
+      );
+      if (!response.ok) throw new Error("OSM search failed");
+      const data = await response.json();
+      
+      const parsed = data.map((place, index) => {
+        const address = place.address || {};
+        const neighborhood = address.suburb || address.neighbourhood || address.city_district || address.town || "Nearby";
+        const name = place.name || place.display_name.split(",")[0];
+        
+        const cuisines = ["Cafe", "Indian", "Pizza & Pasta", "Fast Food", "Bakery & Desserts", "Biryani"];
+        const cuisine = cuisines[index % cuisines.length];
+        
+        const imageOptions = [
+          "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+          "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg",
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
+          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800"
+        ];
+
+        return {
+          _id: `osm_${place.place_id || index}`,
+          name: `${name} (${neighborhood})`,
+          cctvStreamUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          safeBiteAIScore: 85 + (index * 3) % 15,
+          mediaUploadTimeline: [
+            {
+              _id: `osm_t_${index}`,
+              uploadedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+              imageStoragePath: "/uploads/seed_kitchen_3.jpg",
+              visionVerificationScore: 90 + (index * 2) % 10,
+              detectedViolations: [],
+              predictions: [
+                { label: "apron", confidence: 0.92, bbox: [150, 120, 350, 450] },
+                { label: "cap", confidence: 0.88, bbox: [200, 20, 300, 100] }
+              ]
+            }
+          ],
+          meta: {
+            image: imageOptions[index % imageOptions.length],
+            rating: (4.2 + (index * 0.1) % 0.6).toFixed(1),
+            reviews: `${20 + index * 40}+`,
+            cuisine: cuisine,
+            location: neighborhood,
+            time: `${15 + index * 5}-${20 + index * 5} mins`,
+            lat: parseFloat(place.lat),
+            lng: parseFloat(place.lon)
+          }
+        };
+      });
+      setOsmRestaurants(parsed);
+    } catch (e) {
+      console.warn("Could not fetch real-time restaurants from OpenStreetMap:", e);
+      setOsmRestaurants([]);
+    }
+  };
+
+  // Handle fetching real-time restaurants when coordinates update
+  useEffect(() => {
+    if (userCoords) {
+      fetchNearbyOSMRestaurants(userCoords.lat, userCoords.lng);
+    } else {
+      setOsmRestaurants([]);
+    }
+  }, [userCoords]);
 
   // Authenticated user state
   const [currentUser, setCurrentUser] = useState(() => {
@@ -56,6 +167,30 @@ function App() {
       return null;
     }
   });
+
+  // Synchronize state changes to URL hash
+  useEffect(() => {
+    const currentHash = window.location.hash;
+    const targetHash = activeTab === "home" ? "#/" : `#/${activeTab}`;
+    if (currentHash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }, [activeTab]);
+
+  // Synchronize hash changes (browser back/forward button) to state
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveTab(getTabFromHash());
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    
+    // Set initial hash on mount if empty
+    if (!window.location.hash) {
+      window.location.hash = "#/";
+    }
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const fetchRestaurants = async () => {
     try {
@@ -163,21 +298,66 @@ function App() {
     setActiveTab("orders");
   };
 
-  // Filter restaurants based on category and search query
-  const filteredRestaurants = restaurants.map(res => {
-    const meta = restaurantMetaData[res.name] || {
+  // Filter and process restaurants based on category, search, and coordinates
+  const dbProcessed = restaurants.map(res => {
+    const defaultMeta = restaurantMetaData[res.name] || {
       image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800",
       rating: "4.3",
       reviews: "100+",
       cuisine: "Multi-Cuisine",
       location: "Bangalore",
       time: "30-40 mins",
+      lat: 12.9756,
+      lng: 77.6067
     };
+
+    let meta = { ...defaultMeta };
+    if (userCoords) {
+      // Mock close-by coordinates relative to the user to place DB elements near them
+      if (res.name.includes("Pizza")) {
+        meta.lat = userCoords.lat - 0.006;
+        meta.lng = userCoords.lng + 0.008;
+      } else if (res.name.includes("Biryani")) {
+        meta.lat = userCoords.lat + 0.004;
+        meta.lng = userCoords.lng - 0.005;
+      } else {
+        meta.lat = userCoords.lat + 0.009;
+        meta.lng = userCoords.lng + 0.011;
+      }
+    }
+
+    const distance = userCoords
+      ? calculateDistance(userCoords.lat, userCoords.lng, meta.lat, meta.lng)
+      : null;
+
     return {
       ...res,
-      meta
+      meta,
+      distance
     };
-  }).filter(res => {
+  });
+
+  const osmProcessed = osmRestaurants.map(res => {
+    const distance = userCoords
+      ? calculateDistance(userCoords.lat, userCoords.lng, res.meta.lat, res.meta.lng)
+      : null;
+    return {
+      ...res,
+      distance
+    };
+  });
+
+  const allProcessed = [...dbProcessed, ...osmProcessed];
+
+  // Sort by distance if location tracking is active
+  if (userCoords) {
+    allProcessed.sort((a, b) => a.distance - b.distance);
+  }
+
+  const filteredRestaurants = allProcessed.filter(res => {
+    // Strictly show only restaurants within 3km of the user when location services are active
+    const matchesDistance = !userCoords || (res.distance !== null && res.distance <= 3);
+
     const matchesSearch = res.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.meta.cuisine.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.meta.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -185,7 +365,7 @@ function App() {
     const matchesCategory = !selectedCategory ||
       res.meta.cuisine.toLowerCase().includes(selectedCategory.toLowerCase());
 
-    return matchesSearch && matchesCategory;
+    return matchesDistance && matchesSearch && matchesCategory;
   });
 
   return (
@@ -199,7 +379,14 @@ function App() {
 
       {activeTab === "home" && (
         <main className="container">
-          <Hero query={searchQuery} setQuery={setSearchQuery} />
+          <Hero 
+            query={searchQuery} 
+            setQuery={setSearchQuery} 
+            userCoords={userCoords}
+            setUserCoords={setUserCoords}
+            isLocating={isLocating}
+            setIsLocating={setIsLocating}
+          />
 
           <Categories 
             selectedCategory={selectedCategory} 
@@ -239,6 +426,7 @@ function App() {
                     score={res.safeBiteAIScore}
                     isSelected={selectedRes?._id === res._id}
                     onWatchKitchen={() => handleSelectRestaurant(res)}
+                    distance={res.distance}
                   />
                 ))
               )}
