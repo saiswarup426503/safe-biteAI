@@ -1,0 +1,274 @@
+import React, { useState } from "react";
+import { User, Lock, Mail, MapPin, Store, ShieldAlert } from "lucide-react";
+
+export default function Auth({ restaurants, onLogin, onCancel }) {
+  const [role, setRole] = useState("customer"); // customer, merchant
+  const [mode, setMode] = useState("login"); // login, register
+  
+  // Form fields
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+  const [selectedRestId, setSelectedRestId] = useState("");
+  
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password || (mode === "register" && !name)) {
+      setError("Please fill out all required fields.");
+      return;
+    }
+
+    if (role === "merchant" && mode === "register" && !selectedRestId) {
+      setError("Please select the restaurant store you own.");
+      return;
+    }
+
+    // Prepare simulated user data
+    let userObj = {
+      name: mode === "login" ? email.split("@")[0] : name,
+      email,
+      role,
+      id: "usr_" + Date.now()
+    };
+
+    if (role === "customer") {
+      userObj.address = mode === "register" ? address : "123 Indiranagar, Bangalore";
+      userObj.orderHistory = [];
+    } else {
+      // Find restaurant name
+      const rest = restaurants.find(r => r._id === selectedRestId);
+      userObj.linkedRestaurantId = mode === "register" ? selectedRestId : (restaurants[0]?._id || "");
+      userObj.restaurantName = rest ? rest.name : (restaurants[0]?.name || "Your Restaurant");
+    }
+
+    // Save to localStorage
+    localStorage.setItem("currentUser", JSON.stringify(userObj));
+    onLogin(userObj);
+  };
+
+  return (
+    <main className="container" style={{ padding: "60px 0", minHeight: "calc(100vh - 200px)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div 
+        className="live-kitchen" 
+        style={{ 
+          position: "static", 
+          maxWidth: "480px", 
+          width: "100%", 
+          padding: "35px",
+          boxShadow: "0 15px 45px rgba(0,0,0,.08)"
+        }}
+      >
+        {/* Toggle Role */}
+        <div style={{ display: "flex", background: "#f8f7f4", padding: "6px", borderRadius: "14px", marginBottom: "25px", border: "1.5px solid #eee" }}>
+          <button
+            type="button"
+            onClick={() => { setRole("customer"); setError(""); }}
+            style={{
+              flex: 1,
+              padding: "12px",
+              borderRadius: "10px",
+              background: role === "customer" ? "#FC8019" : "transparent",
+              color: role === "customer" ? "white" : "#666",
+              fontWeight: "600",
+              fontSize: "14px",
+              transition: "all 0.3s ease"
+            }}
+          >
+            <User size={16} style={{ marginRight: "6px", display: "inline-block", verticalAlign: "middle" }} />
+            Customer
+          </button>
+          <button
+            type="button"
+            onClick={() => { setRole("merchant"); setError(""); }}
+            style={{
+              flex: 1,
+              padding: "12px",
+              borderRadius: "10px",
+              background: role === "merchant" ? "#FC8019" : "transparent",
+              color: role === "merchant" ? "white" : "#666",
+              fontWeight: "600",
+              fontSize: "14px",
+              transition: "all 0.3s ease"
+            }}
+          >
+            <Store size={16} style={{ marginRight: "6px", display: "inline-block", verticalAlign: "middle" }} />
+            Store Owner
+          </button>
+        </div>
+
+        {/* Header Title */}
+        <div style={{ textAlign: "center", marginBottom: "25px" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "700", color: "#2d2d2d" }}>
+            {mode === "login" ? "Welcome Back" : "Create Account"}
+          </h2>
+          <p style={{ fontSize: "14px", color: "#777", marginTop: "4px" }}>
+            {role === "customer" 
+              ? "Access live-monitored kitchens & place orders" 
+              : "Manage audits and view YOLO compliance scores"}
+          </p>
+        </div>
+
+        {error && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fff5f5", color: "#e53e3e", padding: "12px 15px", borderRadius: "12px", fontSize: "13px", fontWeight: "500", marginBottom: "20px" }}>
+            <ShieldAlert size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Auth Form */}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          
+          {mode === "register" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Full Name</label>
+              <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+                <User size={16} color="#888" />
+                <input 
+                  type="text" 
+                  placeholder="John Doe" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                  style={{ fontSize: "14px", marginLeft: "10px" }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Email Address</label>
+            <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+              <Mail size={16} color="#888" />
+              <input 
+                type="email" 
+                placeholder="you@example.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ fontSize: "14px", marginLeft: "10px" }}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Password</label>
+            <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+              <Lock size={16} color="#888" />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ fontSize: "14px", marginLeft: "10px" }}
+              />
+            </div>
+          </div>
+
+          {/* Customer Extra Field */}
+          {role === "customer" && mode === "register" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Delivery Address</label>
+              <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+                <MapPin size={16} color="#888" />
+                <input 
+                  type="text" 
+                  placeholder="Flat, Building, Street Name" 
+                  value={address} 
+                  onChange={(e) => setAddress(e.target.value)}
+                  style={{ fontSize: "14px", marginLeft: "10px" }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Merchant Extra Field */}
+          {role === "merchant" && mode === "register" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Select Your Restaurant</label>
+              <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+                <Store size={16} color="#888" />
+                <select
+                  value={selectedRestId}
+                  onChange={(e) => setSelectedRestId(e.target.value)}
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    width: "100%",
+                    fontSize: "14px",
+                    marginLeft: "10px",
+                    cursor: "pointer",
+                    color: selectedRestId ? "#2d2d2d" : "#888"
+                  }}
+                >
+                  <option value="" disabled>Choose your store...</option>
+                  {restaurants.map(r => (
+                    <option key={r._id} value={r._id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className="order-btn" 
+            style={{ 
+              marginTop: "10px", 
+              boxShadow: "0 6px 20px rgba(252,128,25,0.2)",
+              cursor: "pointer"
+            }}
+          >
+            {mode === "login" ? "Sign In" : "Sign Up"}
+          </button>
+
+          <button 
+            type="button" 
+            onClick={onCancel}
+            style={{ 
+              background: "transparent",
+              color: "#666",
+              padding: "10px",
+              borderRadius: "12px",
+              fontSize: "13px",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "color 0.2s"
+            }}
+          >
+            Cancel and Return Home
+          </button>
+        </form>
+
+        {/* Footer switch view */}
+        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "14px", color: "#666" }}>
+          {mode === "login" ? (
+            <>
+              Don't have an account?{" "}
+              <span 
+                onClick={() => { setMode("register"); setError(""); }} 
+                style={{ color: "#FC8019", fontWeight: "600", cursor: "pointer" }}
+              >
+                Sign Up
+              </span>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <span 
+                onClick={() => { setMode("login"); setError(""); }} 
+                style={{ color: "#FC8019", fontWeight: "600", cursor: "pointer" }}
+              >
+                Sign In
+              </span>
+            </>
+          )}
+        </div>
+
+      </div>
+    </main>
+  );
+}
