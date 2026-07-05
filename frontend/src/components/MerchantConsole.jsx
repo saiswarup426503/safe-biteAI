@@ -8,10 +8,19 @@ import {
   Clock, 
   Eye, 
   CheckCircle2, 
-  FileImage 
+  FileImage,
+  Video,
+  FileText,
+  History,
+  Plus,
+  Trash2,
+  Search
 } from "lucide-react";
 
 export default function MerchantConsole({ restaurant, onUploadSuccess }) {
+  const [consoleTab, setConsoleTab] = useState("overview"); // overview, menu, history
+  const [menuSearchQuery, setMenuSearchQuery] = useState("");
+  
   const [isUploading, setIsUploading] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
   const [uploadError, setUploadError] = useState(null);
@@ -133,9 +142,9 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
     return () => clearInterval(timer);
   }, [restaurant]);
 
-  // Draw bounding boxes on canvas whenever active analysis image changes
+  // Draw bounding boxes on canvas whenever active analysis image changes or tab switches back to overview
   useEffect(() => {
-    if (!activeAnalysis) return;
+    if (!activeAnalysis || consoleTab !== "overview") return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -186,7 +195,7 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
         ctx.fillText(text, x1 + 6, y1 - 4);
       });
     };
-  }, [activeAnalysis]);
+  }, [activeAnalysis, consoleTab]);
 
   // Format countdown string
   const formatTimer = (secs) => {
@@ -353,455 +362,926 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
   const isWarningState = timeRemaining <= 0;
   const isUrgent = timeRemaining <= 5 * 60; // 5 minutes or less
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "25px", width: "100%" }}>
-      {/* Top dashboard section */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 2fr", gap: "25px" }}>
-        
-        {/* Left Column: Timer & Controls */}
-        <div className="live-kitchen" style={{ position: "static", padding: "24px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Clock size={20} /> Audit Status
-          </h3>
+  // Filtered menu items for the search feature in Menu Manager
+  const filteredMenu = (restaurant.menu || []).filter(item => 
+    item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
+    item.category.toLowerCase().includes(menuSearchQuery.toLowerCase())
+  );
 
-          <div style={{
-            background: "#fdfcfa",
-            border: "1.5px solid #fff3e8",
-            borderRadius: "16px",
-            padding: "20px",
-            textAlign: "center",
-            marginBottom: "20px"
-          }}>
-            <span style={{ fontSize: "11px", fontWeight: "600", color: "#888", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Next Scheduled Upload In
-            </span>
-            <div style={{
-              fontSize: "36px",
-              fontWeight: "700",
-              color: isWarningState ? "#e53e3e" : isUrgent ? "#d69e2e" : "#2d2d2d",
-              margin: "6px 0",
-              fontVariantNumeric: "tabular-nums"
-            }}>
-              {formatTimer(timeRemaining)}
+  return (
+    <div className="console-wrapper">
+      {/* Sleek Horizontal Tab Bar */}
+      <div className="console-tabs-nav">
+        <button 
+          onClick={() => setConsoleTab("overview")} 
+          className={`console-nav-btn ${consoleTab === "overview" ? "active" : ""}`}
+        >
+          <Video size={16} />
+          <span>CCTV & Audit Status</span>
+        </button>
+        <button 
+          onClick={() => setConsoleTab("menu")} 
+          className={`console-nav-btn ${consoleTab === "menu" ? "active" : ""}`}
+        >
+          <FileText size={16} />
+          <span>Menu Manager</span>
+        </button>
+        <button 
+          onClick={() => setConsoleTab("history")} 
+          className={`console-nav-btn ${consoleTab === "history" ? "active" : ""}`}
+        >
+          <History size={16} />
+          <span>Verification Logs ({restaurant.mediaUploadTimeline?.length || 0})</span>
+        </button>
+      </div>
+
+      {/* CCTV & Audit Status Tab */}
+      {consoleTab === "overview" && (
+        <div className="tab-fade-in" style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "25px", width: "100%" }}>
+          {/* Controls Column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
+            {/* Countdown / Audit Status Card */}
+            <div className="console-premium-card status-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                <h3 className="card-title"><Clock size={18} /> Safety Timer</h3>
+                <span className={`status-indicator-dot ${isWarningState ? "red" : isUrgent ? "yellow" : "green"}`}></span>
+              </div>
+
+              <div className="timer-tile">
+                <span className="timer-label">Next Verification In</span>
+                <span className={`timer-countdown-val ${isWarningState ? "danger-text" : isUrgent ? "warning-text" : ""}`}>
+                  {formatTimer(timeRemaining)}
+                </span>
+              </div>
+
+              <div style={{ marginTop: "12px" }}>
+                {isWarningState ? (
+                  <div className="status-alert-badge badge-red">
+                    <AlertTriangle size={14} />
+                    <span>Penalty Alert: SafeBite rating decaying.</span>
+                  </div>
+                ) : isUrgent ? (
+                  <div className="status-alert-badge badge-yellow">
+                    <AlertTriangle size={14} />
+                    <span>Closing: Action required immediately!</span>
+                  </div>
+                ) : (
+                  <div className="status-alert-badge badge-green">
+                    <ShieldCheck size={14} />
+                    <span>Kitchen is fully compliant. All clear.</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div style={{ marginTop: "10px" }}>
-              {isWarningState ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#e53e3e", background: "#fff5f5", padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: "500", justifyContent: "center" }}>
-                  <AlertTriangle size={14} />
-                  <span>CCTV penalty warning! Score degrades 5pts/10m.</span>
-                </div>
-              ) : isUrgent ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#d69e2e", background: "#fefcbf", padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: "500", justifyContent: "center" }}>
-                  <AlertTriangle size={14} />
-                  <span>Upload window closing! Action needed.</span>
+            {/* Ingestion Panel Card */}
+            <div className="console-premium-card">
+              <h3 className="card-title" style={{ marginBottom: "15px" }}><Upload size={18} /> Upload Audit Snap</h3>
+              
+              {isUploading ? (
+                <div className="upload-loading-area">
+                  <RefreshCw size={20} className="spinner-icon" />
+                  <span>Scanning via YOLOv8 AI...</span>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#18a65d", background: "#e9fff2", padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: "500", justifyContent: "center" }}>
-                  <ShieldCheck size={14} />
-                  <span>Compliance score secured. Standards met.</span>
+                <label className="upload-trigger-btn">
+                  <Upload size={18} />
+                  <span>Upload Kitchen Camera Snap</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileUpload} 
+                    style={{ display: "none" }}
+                  />
+                </label>
+              )}
+
+              {uploadError && (
+                <div className="upload-error-text">
+                  <AlertTriangle size={14} />
+                  <span>Error: {uploadError}</span>
                 </div>
               )}
             </div>
+
+            {/* Simulated camera presets */}
+            <div className="console-premium-card">
+              <h3 className="card-title" style={{ marginBottom: "12px" }}><HelpCircle size={18} /> Sim Test Suite</h3>
+              <p className="card-subtitle">Quickly simulate standard camera reports for YOLO validation:</p>
+              
+              <div className="preset-buttons-grid">
+                <button disabled={isUploading} onClick={() => triggerPresetUpload("compliant")} className="sim-action-btn green-btn">
+                  ✔️ Compliant (100%)
+                </button>
+                <button disabled={isUploading} onClick={() => triggerPresetUpload("no_gloves")} className="sim-action-btn yellow-btn">
+                  ⚠️ No Gloves (70%)
+                </button>
+                <button disabled={isUploading} onClick={() => triggerPresetUpload("no_cap")} className="sim-action-btn yellow-btn">
+                  ⚠️ No Cap (70%)
+                </button>
+                <button disabled={isUploading} onClick={() => triggerPresetUpload("dirty_fail")} className="sim-action-btn red-btn">
+                  ❌ Non-Compliant (0%)
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Ingest buttons */}
-          <div style={{ marginBottom: "20px" }}>
-            {isUploading ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#f8f7f4", border: "2px dashed #ddd", borderRadius: "16px", height: "55px", color: "#777", fontSize: "14px" }}>
-                <RefreshCw size={18} className="spinner-icon" style={{ animation: "spin 1.5s linear infinite" }} />
-                <span>Running YOLOv8 scan...</span>
+          {/* Visualizer Canvas Column */}
+          <div className="console-premium-card visualizer-card" style={{ display: "flex", flexDirection: "column" }}>
+            <h3 className="card-title" style={{ marginBottom: "15px" }}>
+              <Eye size={18} /> Live YOLOv8 Compliance Scan Visualizer
+            </h3>
+
+            {activeAnalysis ? (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "18px" }}>
+                {/* Canvas Container with sleek absolute bounds */}
+                <div className="canvas-frame">
+                  <canvas ref={canvasRef} className="yolo-canvas" />
+                </div>
+
+                {/* Verification Stats Grid */}
+                <div className="stats-results-grid">
+                  <div className="stats-results-card">
+                    <span className="results-card-label">Verification Score</span>
+                    <strong className={`results-card-val ${activeAnalysis.visionVerificationScore >= 80 ? "green-text" : "red-text"}`}>
+                      {activeAnalysis.visionVerificationScore}%
+                    </strong>
+                  </div>
+                  <div className="stats-results-card">
+                    <span className="results-card-label">Violations Detected</span>
+                    <strong className={`results-card-val ${activeAnalysis.detectedViolations.length === 0 ? "green-text" : "red-text"}`} style={{ fontSize: "14px" }}>
+                      {activeAnalysis.detectedViolations.length === 0 ? "None - Compliant" : activeAnalysis.detectedViolations.join(", ")}
+                    </strong>
+                  </div>
+                </div>
               </div>
             ) : (
-              <label style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                background: "#FC8019",
-                color: "white",
-                borderRadius: "16px",
-                height: "55px",
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 6px 20px rgba(252,128,25,0.2)",
-                transition: "all 0.3s ease"
-              }}>
-                <Upload size={20} />
-                <span>Upload Kitchen Snap</span>
+              <div className="visualizer-empty-state">
+                <FileImage size={38} className="empty-state-icon" />
+                <h4>No Active Scan</h4>
+                <p>Simulate a camera check or upload a kitchen snapshot to visualize compliance detections.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Menu Manager Tab */}
+      {consoleTab === "menu" && (
+        <div className="tab-fade-in" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "25px" }}>
+          {/* Menu items list column */}
+          <div className="console-premium-card" style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", flexWrap: "wrap", gap: "10px" }}>
+              <div>
+                <h3 className="card-title">Active Digital Menu</h3>
+                <p className="card-subtitle">These items sync directly to Swiggy & Zomato customer apps.</p>
+              </div>
+
+              {/* Minimal Search Bar */}
+              <div className="search-input-wrapper">
+                <Search size={14} className="search-icon" />
                 <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleFileUpload} 
-                  style={{ display: "none" }}
-                />
-              </label>
-            )}
-
-            {uploadError && (
-              <div style={{ color: "#e53e3e", fontSize: "12px", display: "flex", gap: "6px", alignItems: "center", marginTop: "8px" }}>
-                <AlertTriangle size={14} />
-                <span>Upload failed: {uploadError}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Simulation Tools */}
-          <div style={{ borderTop: "1.5px solid #eee", paddingTop: "15px" }}>
-            <span style={{ fontSize: "12px", fontWeight: "600", color: "#777", display: "flex", alignItems: "center", gap: "5px", marginBottom: "10px" }}>
-              <HelpCircle size={14} /> Simulated Camera Presets (YOLO Test Suite)
-            </span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <button 
-                disabled={isUploading}
-                onClick={() => triggerPresetUpload("compliant")}
-                className="preset-btn green"
-              >
-                ✔️ Compliant Scene (100%)
-              </button>
-              <button 
-                disabled={isUploading}
-                onClick={() => triggerPresetUpload("no_gloves")}
-                className="preset-btn amber"
-              >
-                ⚠️ Missing Gloves (70%)
-              </button>
-              <button 
-                disabled={isUploading}
-                onClick={() => triggerPresetUpload("no_cap")}
-                className="preset-btn amber"
-              >
-                ⚠️ Missing Hairnet (70%)
-              </button>
-              <button 
-                disabled={isUploading}
-                onClick={() => triggerPresetUpload("dirty_fail")}
-                className="preset-btn red"
-              >
-                ❌ Missing Cap/Apron/Gloves (0%)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Visualizer Canvas */}
-        <div className="live-kitchen" style={{ position: "static", padding: "24px", display: "flex", flexDirection: "column" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Eye size={20} /> YOLOv8 Compliance Scan Visualizer
-          </h3>
-          
-          {activeAnalysis ? (
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "15px" }}>
-              {/* Canvas Container */}
-              <div style={{
-                position: "relative",
-                background: "#0b0f19",
-                borderRadius: "16px",
-                overflow: "hidden",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "260px"
-              }}>
-                <canvas 
-                  ref={canvasRef}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "320px",
-                    display: "block",
-                    borderRadius: "8px"
-                  }}
+                  type="text" 
+                  value={menuSearchQuery} 
+                  onChange={(e) => setMenuSearchQuery(e.target.value)} 
+                  placeholder="Filter menu..." 
+                  className="search-menu-input"
                 />
               </div>
-
-              {/* Stats overlay */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-                <div style={{ background: "#f8f7f4", padding: "12px 15px", borderRadius: "12px", border: "1.5px solid #eee" }}>
-                  <span style={{ fontSize: "11px", color: "#888", display: "block" }}>Verification Score</span>
-                  <strong style={{ fontSize: "18px", color: activeAnalysis.visionVerificationScore >= 80 ? "#18a65d" : "#e53e3e" }}>
-                    {activeAnalysis.visionVerificationScore}%
-                  </strong>
-                </div>
-                <div style={{ background: "#f8f7f4", padding: "12px 15px", borderRadius: "12px", border: "1.5px solid #eee" }}>
-                  <span style={{ fontSize: "11px", color: "#888", display: "block" }}>Violations Found</span>
-                  <strong style={{ fontSize: "14px", color: activeAnalysis.detectedViolations.length === 0 ? "#18a65d" : "#e53e3e" }}>
-                    {activeAnalysis.detectedViolations.length === 0 ? "None - Compliant" : activeAnalysis.detectedViolations.join(", ")}
-                  </strong>
-                </div>
-              </div>
             </div>
-          ) : (
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "2.5px dashed #eee", borderRadius: "20px", color: "#888", minHeight: "280px" }}>
-              <FileImage size={40} style={{ marginBottom: "15px" }} />
-              <p style={{ fontWeight: "600" }}>No audit log available</p>
-              <p style={{ fontSize: "12px", marginTop: "4px" }}>Upload a camera snapshot or click a preset simulation to run verification.</p>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Swiggy & Zomato style Food Menu Manager */}
-      <div className="live-kitchen" style={{ position: "static", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "0", display: "flex", alignItems: "center", gap: "8px" }}>
-          📋 Swiggy & Zomato Menu Editor
-        </h3>
-        <p style={{ color: "#666", fontSize: "13px", margin: 0 }}>Add, edit, or delete items from your digital menu. Changes are instantly pushed to customer apps.</p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "30px" }}>
-          {/* Menu Items List */}
-          <div style={{ background: "#f8f7f4", padding: "20px", borderRadius: "16px", border: "1.5px solid #eee" }}>
-            <h4 style={{ margin: "0 0 15px 0", fontSize: "15px", color: "#FC8019" }}>Active Menu List</h4>
-            {restaurant.menu && restaurant.menu.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto", paddingRight: "8px" }}>
-                {restaurant.menu.map((item, index) => (
-                  <div 
-                    key={index}
-                    style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center", 
-                      padding: "12px 15px", 
-                      background: "white", 
-                      borderRadius: "12px", 
-                      border: "1px solid #e2e8f0" 
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: "600", fontSize: "14px" }}>
-                        {item.name} <span style={{ fontSize: "10px", color: "#18a65d", background: "#e9fff2", padding: "1px 6px", borderRadius: "6px", marginLeft: "6px" }}>{item.category}</span>
+            {filteredMenu.length > 0 ? (
+              <div className="digital-menu-list">
+                {filteredMenu.map((item, idx) => (
+                  <div key={idx} className="menu-item-row">
+                    <div style={{ flex: 1, paddingRight: "15px" }}>
+                      <div className="menu-item-header">
+                        <strong className="item-title">{item.name}</strong>
+                        <span className="item-badge">{item.category}</span>
                       </div>
-                      {item.description && <div style={{ fontSize: "11px", color: "#777", marginTop: "2px" }}>{item.description}</div>}
-                      <strong style={{ fontSize: "13px", color: "#FC8019", display: "block", marginTop: "2px" }}>₹{item.price}</strong>
+                      {item.description && <p className="item-description">{item.description}</p>}
+                      <strong className="item-price">₹{item.price}</strong>
                     </div>
-                    <button
-                      onClick={() => handleDeleteMenuItem(index)}
+
+                    <button 
+                      onClick={() => handleDeleteMenuItem(idx)} 
                       disabled={isUpdatingMenu}
-                      style={{ 
-                        background: "#fff5f5", 
-                        border: "none", 
-                        color: "#e53e3e", 
-                        cursor: "pointer", 
-                        padding: "6px 10px", 
-                        borderRadius: "8px", 
-                        fontSize: "12px",
-                        fontWeight: "600"
-                      }}
+                      className="delete-item-action-btn"
+                      title="Remove Item"
                     >
-                      Delete
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: "center", padding: "30px 10px", color: "#888", fontSize: "13px" }}>
-                Your restaurant menu is currently empty. Add your first dish on the right!
+              <div className="menu-empty-state">
+                <FileText size={38} className="empty-state-icon" />
+                <h4>No Items Match</h4>
+                <p>{restaurant.menu?.length > 0 ? "Try search query again." : "Add your first dish in the sidebar form."}</p>
               </div>
             )}
           </div>
 
-          {/* Add New Dish Form */}
-          <form 
-            onSubmit={handleAddMenuItem}
-            style={{ 
-              display: "flex", 
-              flexDirection: "column", 
-              gap: "12px", 
-              background: "white", 
-              padding: "20px", 
-              borderRadius: "16px", 
-              border: "1.5px solid #eee" 
-            }}
-          >
-            <h4 style={{ margin: "0 0 5px 0", fontSize: "15px", color: "#FC8019" }}>Add New Dish</h4>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Dish Name *</label>
-              <input 
-                type="text" 
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="e.g. Butter Chicken Masala"
-                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
-                required
-              />
-            </div>
+          {/* Add menu item form column */}
+          <div className="console-premium-card">
+            <h3 className="card-title" style={{ marginBottom: "15px" }}>
+              <Plus size={18} style={{ verticalAlign: "middle", marginRight: "5px" }} />
+              Add New Dish
+            </h3>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Price (₹) *</label>
+            <form onSubmit={handleAddMenuItem} className="add-menu-form">
+              <div className="form-group-item">
+                <label className="form-group-label">Dish Name *</label>
                 <input 
-                  type="number" 
-                  value={newItemPrice}
-                  onChange={(e) => setNewItemPrice(e.target.value)}
-                  placeholder="e.g. 240"
-                  style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
+                  type="text" 
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="e.g. Garlic Naan"
+                  className="form-group-input"
                   required
                 />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Category</label>
-                <select 
-                  value={newItemCategory}
-                  onChange={(e) => setNewItemCategory(e.target.value)}
-                  style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px" }}
-                >
-                  <option value="Main">Main</option>
-                  <option value="Starters">Starters</option>
-                  <option value="Dosa">Dosa</option>
-                  <option value="Biryani">Biryani</option>
-                  <option value="Pizzas">Pizzas</option>
-                  <option value="Desserts">Desserts</option>
-                  <option value="Beverages">Beverages</option>
-                </select>
-              </div>
-            </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <label style={{ fontSize: "11px", fontWeight: "600", color: "#666" }}>Description</label>
-              <textarea 
-                value={newItemDesc}
-                onChange={(e) => setNewItemDesc(e.target.value)}
-                placeholder="e.g. Rich creamy gravy infused with mild spices..."
-                rows="2"
-                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "13px", resize: "none" }}
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={isUpdatingMenu || isUpdatingMenu}
-              style={{ 
-                marginTop: "10px", 
-                padding: "10px", 
-                background: "#FC8019", 
-                color: "white", 
-                border: "none", 
-                borderRadius: "10px", 
-                fontWeight: "600", 
-                cursor: "pointer",
-                boxShadow: "0 4px 15px rgba(252,128,25,0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px"
-              }}
-            >
-              {isUpdatingMenu ? "Updating..." : "Add Dish to Menu"}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* History Log Timeline section */}
-      <div className="live-kitchen" style={{ position: "static", padding: "24px" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>Verification Timeline Log</h3>
-        
-        {restaurant.mediaUploadTimeline && restaurant.mediaUploadTimeline.length > 0 ? (
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            maxHeight: "350px",
-            overflowY: "auto",
-            paddingRight: "10px"
-          }}>
-            {[...restaurant.mediaUploadTimeline].reverse().map((item, index) => {
-              const dateStr = new Date(item.uploadedAt).toLocaleString();
-              const isSelected = activeAnalysis?._id === item._id;
-              
-              return (
-                <div
-                  key={item._id || index}
-                  onClick={() => setActiveAnalysis(item)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "15px 20px",
-                    background: isSelected ? "#fff3e8" : "white",
-                    border: isSelected ? "1.5px solid #FC8019" : "1.5px solid #eee",
-                    borderRadius: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease"
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                    <div style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "10px",
-                      overflow: "hidden",
-                      background: "#eee",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <img src={item.imageStoragePath} alt="Log" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: "14px", fontWeight: "600" }}>
-                        Audit Check - {item.visionVerificationScore}% Score
-                      </h4>
-                      <span style={{ fontSize: "11px", color: "#888" }}>{dateStr}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                    {item.detectedViolations.length === 0 ? (
-                      <span style={{
-                        fontSize: "12px",
-                        color: "#18a65d",
-                        background: "#e9fff2",
-                        padding: "4px 10px",
-                        borderRadius: "8px",
-                        fontWeight: "600"
-                      }}>
-                        Passed
-                      </span>
-                    ) : (
-                      <span style={{
-                        fontSize: "12px",
-                        color: "#e53e3e",
-                        background: "#fff5f5",
-                        padding: "4px 10px",
-                        borderRadius: "8px",
-                        fontWeight: "600"
-                      }}>
-                        {item.detectedViolations.length} Violations
-                      </span>
-                    )}
-                  </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "15px" }}>
+                <div className="form-group-item">
+                  <label className="form-group-label">Price (₹) *</label>
+                  <input 
+                    type="number" 
+                    value={newItemPrice}
+                    onChange={(e) => setNewItemPrice(e.target.value)}
+                    placeholder="120"
+                    className="form-group-input"
+                    required
+                  />
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div style={{ padding: "20px", textAlign: "center", color: "#999", border: "1.5px dashed #eee", borderRadius: "16px" }}>
-            No uploads registered in the verification history.
-          </div>
-        )}
-      </div>
 
+                <div className="form-group-item">
+                  <label className="form-group-label">Category</label>
+                  <select 
+                    value={newItemCategory}
+                    onChange={(e) => setNewItemCategory(e.target.value)}
+                    className="form-group-select"
+                  >
+                    <option value="Main">Main</option>
+                    <option value="Starters">Starters</option>
+                    <option value="Dosa">Dosa</option>
+                    <option value="Biryani">Biryani</option>
+                    <option value="Pizzas">Pizzas</option>
+                    <option value="Desserts">Desserts</option>
+                    <option value="Beverages">Beverages</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group-item">
+                <label className="form-group-label">Short Description</label>
+                <textarea 
+                  value={newItemDesc}
+                  onChange={(e) => setNewItemDesc(e.target.value)}
+                  placeholder="Crispy, buttered flatbread garnished with garlic..."
+                  rows="3"
+                  className="form-group-textarea"
+                />
+              </div>
+
+              <button type="submit" disabled={isUpdatingMenu} className="add-dish-submit-btn">
+                {isUpdatingMenu ? (
+                  <>
+                    <RefreshCw size={16} className="spinner-icon" />
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    <span>Add Item to Menu</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Compliance History Logs Tab */}
+      {consoleTab === "history" && (
+        <div className="tab-fade-in console-premium-card" style={{ display: "flex", flexDirection: "column" }}>
+          <h3 className="card-title" style={{ marginBottom: "5px" }}><History size={18} /> Verification Timeline Log</h3>
+          <p className="card-subtitle" style={{ marginBottom: "20px" }}>Click on any record below to load and inspect details in the CCTV Visualizer.</p>
+
+          {restaurant.mediaUploadTimeline && restaurant.mediaUploadTimeline.length > 0 ? (
+            <div className="timeline-items-flow">
+              {[...restaurant.mediaUploadTimeline].reverse().map((item, idx) => {
+                const dateStr = new Date(item.uploadedAt).toLocaleString();
+                const isSelected = activeAnalysis?._id === item._id;
+
+                return (
+                  <div 
+                    key={item._id || idx}
+                    onClick={() => {
+                      setActiveAnalysis(item);
+                      setConsoleTab("overview");
+                    }}
+                    className={`timeline-row-card ${isSelected ? "selected" : ""}`}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                      <div className="timeline-img-thumbnail">
+                        <img src={item.imageStoragePath} alt="Log" />
+                      </div>
+                      <div>
+                        <h4 className="timeline-item-title">
+                          Audit Completed - {item.visionVerificationScore}% Score
+                        </h4>
+                        <span className="timeline-item-date">{dateStr}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      {item.detectedViolations.length === 0 ? (
+                        <span className="timeline-badge-passed">Passed</span>
+                      ) : (
+                        <span className="timeline-badge-violations">
+                          {item.detectedViolations.length} {item.detectedViolations.length === 1 ? "Violation" : "Violations"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="history-empty-state">
+              <History size={38} className="empty-state-icon" />
+              <h4>No Log History</h4>
+              <p>Reports will accumulate here as CCTV checks are performed.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sleek Minimal Stylesheet */}
       <style>{`
-        .preset-btn {
+        .console-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
           width: 100%;
-          padding: 10px 14px;
+          font-family: 'Outfit', 'Inter', sans-serif;
+        }
+
+        /* Top sub-navigation menu styles */
+        .console-tabs-nav {
+          display: flex;
+          background: rgba(243, 244, 246, 0.7);
+          backdrop-filter: blur(10px);
+          padding: 5px;
+          border-radius: 16px;
+          border: 1px solid rgba(229, 231, 235, 0.8);
+          gap: 5px;
+          max-width: 600px;
+          margin-bottom: 5px;
+        }
+        .console-nav-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: none;
+          background: transparent;
+          color: #4b5563;
+          font-size: 13.5px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .console-nav-btn:hover {
+          color: #111827;
+          background: rgba(255, 255, 255, 0.4);
+        }
+        .console-nav-btn.active {
+          background: #ffffff;
+          color: #FC8019;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Cards and Core Panels */
+        .console-premium-card {
+          background: #ffffff;
+          border: 1.5px solid #f0f0f0;
+          border-radius: 24px;
+          padding: 22px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+          transition: all 0.3s ease;
+        }
+        .console-premium-card:hover {
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        }
+        .card-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          font-size: 16px;
+          font-weight: 700;
+          color: #1f2937;
+        }
+        .card-subtitle {
+          margin: 4px 0 0 0;
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        /* Status & Timer Styles */
+        .timer-tile {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: #fafaf9;
+          border: 1.5px solid #f5f5f4;
+          border-radius: 20px;
+          padding: 18px;
+          margin-top: 10px;
+          text-align: center;
+        }
+        .timer-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #78716c;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .timer-countdown-val {
+          font-size: 34px;
+          font-weight: 800;
+          color: #292524;
+          margin-top: 5px;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: -0.02em;
+        }
+        .timer-countdown-val.danger-text {
+          color: #ef4444;
+        }
+        .timer-countdown-val.warning-text {
+          color: #f59e0b;
+        }
+
+        /* Alert badges styling */
+        .status-alert-badge {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          font-size: 11.5px;
+          font-weight: 600;
+          text-align: center;
+        }
+        .badge-red {
+          color: #dc2626;
+          background: #fef2f2;
+        }
+        .badge-yellow {
+          color: #d97706;
+          background: #fffbeb;
+        }
+        .badge-green {
+          color: #059669;
+          background: #ecfdf5;
+        }
+        .status-indicator-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: block;
+        }
+        .status-indicator-dot.green {
+          background: #10b981;
+          box-shadow: 0 0 10px #10b981;
+          animation: pulse 2s infinite;
+        }
+        .status-indicator-dot.yellow {
+          background: #f59e0b;
+          box-shadow: 0 0 10px #f59e0b;
+          animation: pulse 2s infinite;
+        }
+        .status-indicator-dot.red {
+          background: #ef4444;
+          box-shadow: 0 0 10px #ef4444;
+          animation: pulse 2s infinite;
+        }
+
+        /* Upload area styling */
+        .upload-trigger-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: #FC8019;
+          color: white;
+          border-radius: 14px;
+          height: 48px;
+          font-size: 13.5px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          box-shadow: 0 4px 15px rgba(252, 128, 25, 0.15);
+        }
+        .upload-trigger-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(252, 128, 25, 0.25);
+        }
+        .upload-loading-area {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: #fafaf9;
+          border: 1.5px dashed #d6d3d1;
+          border-radius: 14px;
+          height: 48px;
+          color: #78716c;
+          font-size: 13.5px;
+          font-weight: 600;
+        }
+        .upload-error-text {
+          color: #ef4444;
+          font-size: 11px;
+          font-weight: 500;
+          margin-top: 8px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        /* YOLO Presets */
+        .preset-buttons-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .sim-action-btn {
+          padding: 10px 12px;
           border-radius: 10px;
           font-weight: 600;
-          font-size: 13px;
+          font-size: 11px;
           text-align: left;
           cursor: pointer;
           transition: all 0.2s ease;
+          border: 1px solid #e5e7eb;
+          background: #fdfdfd;
+          color: #4b5563;
+        }
+        .sim-action-btn:hover {
+          transform: translateY(-1px);
+        }
+        .sim-action-btn.green-btn:hover { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+        .sim-action-btn.yellow-btn:hover { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+        .sim-action-btn.red-btn:hover { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+
+        /* YOLO Visualizer Canvas Styles */
+        .canvas-frame {
+          position: relative;
+          background: #0b0f19;
+          border-radius: 20px;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 280px;
+          flex: 1;
+        }
+        .yolo-canvas {
+          max-width: 100%;
+          max-height: 300px;
+          display: block;
+          border-radius: 8px;
+        }
+        .stats-results-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.5fr;
+          gap: 12px;
+        }
+        .stats-results-card {
+          background: #fafaf9;
+          border: 1.5px solid #f5f5f4;
+          padding: 10px 14px;
+          border-radius: 14px;
+        }
+        .results-card-label {
+          font-size: 10px;
+          color: #78716c;
+          display: block;
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+        .results-card-val {
+          font-size: 18px;
+          font-weight: 700;
+          margin-top: 2px;
+          display: block;
+        }
+        .green-text { color: #10b981; }
+        .red-text { color: #ef4444; }
+
+        .visualizer-empty-state {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px dashed #e5e7eb;
+          border-radius: 20px;
+          color: #9ca3af;
+          padding: 40px 20px;
+          text-align: center;
+        }
+        .empty-state-icon {
+          color: #d1d5db;
+          margin-bottom: 12px;
+        }
+        .visualizer-empty-state h4 {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 700;
+          color: #4b5563;
+        }
+        .visualizer-empty-state p {
+          margin: 4px 0 0 0;
+          font-size: 11px;
+          color: #9ca3af;
+          max-width: 250px;
+        }
+
+        /* Menu Manager Styles */
+        .search-input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .search-icon {
+          position: absolute;
+          left: 10px;
+          color: #9ca3af;
+        }
+        .search-menu-input {
+          padding: 7px 10px 7px 28px;
+          border-radius: 10px;
+          border: 1.5px solid #e5e7eb;
+          font-size: 12.5px;
+          font-family: inherit;
+          width: 170px;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        .search-menu-input:focus {
+          border-color: #FC8019;
+        }
+        .digital-menu-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 400px;
+          overflow-y: auto;
+          padding-right: 5px;
+        }
+        .menu-item-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 14px;
+          background: #fafaf9;
+          border-radius: 16px;
+          border: 1px solid #f0efed;
+          transition: all 0.2s;
+        }
+        .menu-item-row:hover {
+          background: #f5f4f0;
+          border-color: #e5e3df;
+        }
+        .menu-item-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .item-title {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #1f2937;
+        }
+        .item-badge {
+          font-size: 9px;
+          color: #059669;
+          background: #ecfdf5;
+          padding: 1px 6px;
+          border-radius: 6px;
+          font-weight: 700;
+        }
+        .item-description {
+          font-size: 11px;
+          color: #6b7280;
+          margin: 3px 0 0 0;
+          line-height: 1.3;
+        }
+        .item-price {
+          font-size: 12.5px;
+          color: #FC8019;
+          display: block;
+          margin-top: 4px;
+        }
+        .delete-item-action-btn {
+          background: #fee2e2;
           border: none;
-          background: #f8f7f4;
-          color: #2d2d2d;
+          color: #ef4444;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
         }
-        .preset-btn:hover {
-          transform: translateX(4px);
+        .delete-item-action-btn:hover {
+          background: #fecaca;
+          color: #dc2626;
+          transform: scale(1.05);
         }
-        .preset-btn.green:hover { background: #e9fff2; color: #18a65d; }
-        .preset-btn.amber:hover { background: #fefcbf; color: #d69e2e; }
-        .preset-btn.red:hover { background: #fff5f5; color: #e53e3e; }
+        .menu-empty-state {
+          padding: 50px 20px;
+          text-align: center;
+          color: #9ca3af;
+        }
+        .menu-empty-state h4 {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 700;
+          color: #4b5563;
+        }
+        .menu-empty-state p {
+          margin: 4px 0 0 0;
+          font-size: 11px;
+          color: #9ca3af;
+        }
+
+        /* Form Controls */
+        .add-menu-form {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .form-group-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .form-group-label {
+          font-size: 10.5px;
+          font-weight: 700;
+          color: #4b5563;
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
+        }
+        .form-group-input, .form-group-select, .form-group-textarea {
+          padding: 9px 12px;
+          border-radius: 10px;
+          border: 1.5px solid #e5e7eb;
+          font-size: 13px;
+          font-family: inherit;
+          outline: none;
+          transition: border-color 0.2s;
+          background: #fafaf9;
+        }
+        .form-group-input:focus, .form-group-select:focus, .form-group-textarea:focus {
+          border-color: #FC8019;
+          background: #ffffff;
+        }
+        .form-group-textarea {
+          resize: none;
+        }
+        .add-dish-submit-btn {
+          margin-top: 5px;
+          padding: 11px;
+          background: #FC8019;
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(252, 128, 25, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.25s;
+        }
+        .add-dish-submit-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(252, 128, 25, 0.25);
+        }
+
+        /* Timeline History Styles */
+        .timeline-items-flow {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 420px;
+          overflow-y: auto;
+          padding-right: 5px;
+        }
+        .timeline-row-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          background: #ffffff;
+          border: 1.5px solid #f3f4f6;
+          border-radius: 16px;
+          cursor: pointer;
+          transition: all 0.25s ease;
+        }
+        .timeline-row-card:hover {
+          transform: translateX(3px);
+          border-color: #e5e7eb;
+          background: #fafaf9;
+        }
+        .timeline-row-card.selected {
+          border-color: #FC8019;
+          background: #fff7ed;
+        }
+        .timeline-img-thumbnail {
+          width: 42px;
+          height: 42px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #e5e7eb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .timeline-img-thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .timeline-item-title {
+          font-size: 13px;
+          font-weight: 700;
+          margin: 0;
+          color: #1f2937;
+        }
+        .timeline-item-date {
+          font-size: 10px;
+          color: #9ca3af;
+        }
+        .timeline-badge-passed {
+          font-size: 10px;
+          color: #059669;
+          background: #ecfdf5;
+          padding: 3px 8px;
+          border-radius: 8px;
+          font-weight: 700;
+        }
+        .timeline-badge-violations {
+          font-size: 10px;
+          color: #dc2626;
+          background: #fef2f2;
+          padding: 3px 8px;
+          border-radius: 8px;
+          font-weight: 700;
+        }
+        .history-empty-state {
+          padding: 40px;
+          text-align: center;
+          color: #9ca3af;
+        }
+
+        /* Micro animations */
+        .spinner-icon {
+          animation: spin 1.2s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0% { transform: scale(0.95); opacity: 0.8; }
+          50% { transform: scale(1.05); opacity: 1; }
+          100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .tab-fade-in {
+          animation: tabFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes tabFade {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
     </div>
   );

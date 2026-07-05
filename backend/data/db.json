@@ -3,7 +3,7 @@
     "_id": "6677889900112233445566aa",
     "name": "Biryani Zone (BTM Layout)",
     "cctvStreamUrl": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-    "lastMediaUploadTimestamp": "2026-07-03T16:32:22.482Z",
+    "lastMediaUploadTimestamp": "2026-07-05T13:49:16.261Z",
     "mediaUploadTimeline": [
       {
         "_id": "t1",
@@ -172,11 +172,265 @@
             ]
           }
         ]
+      },
+      {
+        "_id": "t_1783255964035",
+        "uploadedAt": "2026-07-05T12:52:44.031Z",
+        "imageStoragePath": "/uploads/1783255962795-636880838.jpg",
+        "visionVerificationScore": 40,
+        "detectedViolations": [
+          "Missing Cap",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.91,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783256387080",
+        "uploadedAt": "2026-07-05T12:59:47.075Z",
+        "imageStoragePath": "/uploads/1783256386973-301336058.jpg",
+        "visionVerificationScore": 30,
+        "detectedViolations": [
+          "Missing Apron",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.95,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257078187",
+        "uploadedAt": "2026-07-05T13:11:18.184Z",
+        "imageStoragePath": "/uploads/1783257078079-779831313.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.93,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.83,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.84,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.83,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257135106",
+        "uploadedAt": "2026-07-05T13:12:15.101Z",
+        "imageStoragePath": "/uploads/1783257135043-538170912.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.95,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.92,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257987417",
+        "uploadedAt": "2026-07-05T13:26:27.411Z",
+        "imageStoragePath": "/uploads/1783257987283-93155423.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.86,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.86,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.93,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.81,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783259356266",
+        "uploadedAt": "2026-07-05T13:49:16.260Z",
+        "imageStoragePath": "/uploads/1783259356180-211447980.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.96,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.89,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
       }
     ],
-    "safeBiteAIScore": 92,
+    "safeBiteAIScore": 84,
     "createdAt": "2026-07-01T15:19:44.433Z",
-    "updatedAt": "2026-07-03T16:32:22.482Z"
+    "updatedAt": "2026-07-05T13:52:57.390Z",
+    "menu": [
+      {
+        "name": "Garlic Naan Special",
+        "price": 120,
+        "category": "Main",
+        "description": "Butter and garlic"
+      },
+      {
+        "name": "Garlic Naan Special",
+        "price": 120,
+        "category": "Main",
+        "description": "Butter and garlic"
+      }
+    ]
   },
   {
     "_id": "6677889900112233445566bb",

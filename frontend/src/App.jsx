@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Categories from "./components/Categories";
@@ -191,6 +191,15 @@ function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  // Clear selected restaurant when navigating away from the merchant portal (profile tab)
+  const prevTabRef = useRef(activeTab);
+  useEffect(() => {
+    if (prevTabRef.current === "profile" && activeTab !== "profile") {
+      setSelectedRes(null);
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab]);
+
   const fetchRestaurants = async () => {
     try {
       const response = await fetch("/api/restaurants");
@@ -216,7 +225,7 @@ function App() {
   useEffect(() => {
     if (restaurants.length > 0 && !selectedRes) {
       // If merchant is logged in, select their linked store first
-      if (currentUser && currentUser.role === "merchant" && currentUser.linkedRestaurantId) {
+      if (activeTab === "profile" && currentUser && currentUser.role === "merchant" && currentUser.linkedRestaurantId) {
         const linked = restaurants.find(r => r._id === currentUser.linkedRestaurantId);
         if (linked) {
           setSelectedRes(linked);
@@ -230,7 +239,7 @@ function App() {
         setSelectedRes(updated);
       }
     }
-  }, [restaurants, selectedRes, currentUser]);
+  }, [restaurants, selectedRes, currentUser, activeTab]);
 
   const handleSelectRestaurant = (res) => {
     setSelectedRes(res);
@@ -379,7 +388,10 @@ function App() {
         setActiveTab={setActiveTab}
         currentUser={currentUser}
         onLogout={handleLogout}
-        onHomeClick={() => setSelectedRes(null)}
+        onHomeClick={() => {
+          setSelectedRes(null);
+          setActiveTab("home");
+        }}
       />
 
       {activeTab === "home" && (
