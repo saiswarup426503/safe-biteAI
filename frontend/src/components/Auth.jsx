@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { User, Lock, Mail, MapPin, Store, ShieldAlert } from "lucide-react";
 
-export default function Auth({ restaurants, onLogin, onCancel }) {
-  const [role, setRole] = useState("customer"); // customer, merchant
+export default function Auth({ role = "customer", restaurants, onLogin, onCancel }) {
   const [mode, setMode] = useState("login"); // login, register
   
   // Form fields
@@ -63,43 +62,7 @@ export default function Auth({ restaurants, onLogin, onCancel }) {
           boxShadow: "0 15px 45px rgba(0,0,0,.08)"
         }}
       >
-        {/* Toggle Role */}
-        <div style={{ display: "flex", background: "#f8f7f4", padding: "6px", borderRadius: "14px", marginBottom: "25px", border: "1.5px solid #eee" }}>
-          <button
-            type="button"
-            onClick={() => { setRole("customer"); setError(""); }}
-            style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "10px",
-              background: role === "customer" ? "#FC8019" : "transparent",
-              color: role === "customer" ? "white" : "#666",
-              fontWeight: "600",
-              fontSize: "14px",
-              transition: "all 0.3s ease"
-            }}
-          >
-            <User size={16} style={{ marginRight: "6px", display: "inline-block", verticalAlign: "middle" }} />
-            Customer
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRole("merchant"); setError(""); }}
-            style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "10px",
-              background: role === "merchant" ? "#FC8019" : "transparent",
-              color: role === "merchant" ? "white" : "#666",
-              fontWeight: "600",
-              fontSize: "14px",
-              transition: "all 0.3s ease"
-            }}
-          >
-            <Store size={16} style={{ marginRight: "6px", display: "inline-block", verticalAlign: "middle" }} />
-            Store Owner
-          </button>
-        </div>
+
 
         {/* Header Title */}
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
@@ -264,6 +227,31 @@ export default function Auth({ restaurants, onLogin, onCancel }) {
               >
                 Sign In
               </span>
+            </>
+          )}
+        </div>
+
+        {/* Separate gateway links for real website experience */}
+        <div style={{ textAlign: "center", marginTop: "18px", paddingTop: "18px", borderTop: "1.5px dashed #eee", fontSize: "13px", color: "#777" }}>
+          {role === "customer" ? (
+            <>
+              Are you a restaurant partner?{" "}
+              <a 
+                href="#/auth/merchant" 
+                style={{ color: "#FC8019", fontWeight: "600", textDecoration: "underline" }}
+              >
+                Merchant Portal Login
+              </a>
+            </>
+          ) : (
+            <>
+              Looking for the customer site?{" "}
+              <a 
+                href="#/auth/customer" 
+                style={{ color: "#FC8019", fontWeight: "600", textDecoration: "underline" }}
+              >
+                Go to Customer Login
+              </a>
             </>
           )}
         </div>

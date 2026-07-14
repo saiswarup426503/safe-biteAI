@@ -96,25 +96,34 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
             </button>
           </div>
         ) : (
-          <a 
-            className={activeTab === "auth" ? "active" : ""} 
-            href="#/auth"
-            style={{
-              background: "#FC8019",
-              color: "white",
-              padding: "10px 18px",
-              borderRadius: "12px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              boxShadow: "0 4px 15px rgba(252,128,25,0.15)",
-              fontWeight: "600",
-              marginLeft: "10px"
-            }}
-          >
-            <User size={16} />
-            Sign In
-          </a>
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <a 
+              className={activeTab === "auth-merchant" ? "active" : ""} 
+              href="#/auth/merchant"
+            >
+              <Store size={18} />
+              Partner Login
+            </a>
+            <a 
+              className={activeTab === "auth-customer" ? "active" : ""} 
+              href="#/auth/customer"
+              style={{
+                background: "#FC8019",
+                color: "white",
+                padding: "10px 18px",
+                borderRadius: "12px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 4px 15px rgba(252,128,25,0.15)",
+                fontWeight: "600",
+                marginLeft: "10px"
+              }}
+            >
+              <User size={16} />
+              Sign In
+            </a>
+          </div>
         )}
       </nav>
     </header>

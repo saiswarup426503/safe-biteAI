@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
@@ -110,8 +111,7 @@ if (!fs.existsSync(JSON_DB_PATH)) {
 
 let useFallback = false;
 
-// Attempt mongoose connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/safebite';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/safebite';
 
 // We'll set a low timeout for connection to not hang the app during startup check
 try {

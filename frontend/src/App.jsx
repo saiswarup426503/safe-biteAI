@@ -49,7 +49,8 @@ const getTabFromHash = () => {
   if (hash === "#/guidelines") return "guidelines";
   if (hash === "#/profile") return "profile";
   if (hash === "#/orders") return "orders";
-  if (hash === "#/auth") return "auth";
+  if (hash === "#/auth/merchant") return "auth-merchant";
+  if (hash === "#/auth/customer" || hash === "#/auth") return "auth-customer";
   return "home";
 };
 
@@ -170,7 +171,12 @@ function App() {
   // Synchronize state changes to URL hash
   useEffect(() => {
     const currentHash = window.location.hash;
-    const targetHash = activeTab === "home" ? "#/" : `#/${activeTab}`;
+    let targetHash = "#/";
+    if (activeTab === "home") targetHash = "#/";
+    else if (activeTab === "auth-customer") targetHash = "#/auth/customer";
+    else if (activeTab === "auth-merchant") targetHash = "#/auth/merchant";
+    else targetHash = `#/${activeTab}`;
+
     if (currentHash !== targetHash) {
       window.location.hash = targetHash;
     }
@@ -272,7 +278,7 @@ function App() {
 
   const handleOrderPlacement = (restaurant, selectedItem) => {
     if (!restaurant) {
-      setActiveTab("auth");
+      setActiveTab("auth-customer");
       return;
     }
 
@@ -569,8 +575,18 @@ function App() {
         <Guidelines />
       )}
 
-      {activeTab === "auth" && (
+      {activeTab === "auth-customer" && (
         <Auth
+          role="customer"
+          restaurants={restaurants}
+          onLogin={handleLogin}
+          onCancel={() => setActiveTab("home")}
+        />
+      )}
+
+      {activeTab === "auth-merchant" && (
+        <Auth
+          role="merchant"
           restaurants={restaurants}
           onLogin={handleLogin}
           onCancel={() => setActiveTab("home")}
