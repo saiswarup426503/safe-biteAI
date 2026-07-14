@@ -6,7 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import FormData from 'form-data';
-import { Restaurant } from './db.js';
+import { Restaurant, User, Merchant } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,8 +76,9 @@ app.get('/api/restaurants', async (req, res) => {
         safeBiteAIScore = Math.max(10, restaurant.safeBiteAIScore - penalty);
       }
       
+      const plainRestaurant = restaurant.toObject ? restaurant.toObject() : restaurant;
       return {
-        ...restaurant,
+        ...plainRestaurant,
         safeBiteAIScore,
         isWarningState: minutesSinceLastUpload > 30
       };
@@ -108,8 +109,9 @@ app.get('/api/restaurants/:id', async (req, res) => {
       safeBiteAIScore = Math.max(10, restaurant.safeBiteAIScore - penalty);
     }
 
+    const plainRestaurant = restaurant.toObject ? restaurant.toObject() : restaurant;
     res.json({
-      ...restaurant,
+      ...plainRestaurant,
       safeBiteAIScore,
       isWarningState: minutesSinceLastUpload > 30,
       minutesSinceLastUpload: lastUpload ? Math.floor(minutesSinceLastUpload) : null
@@ -366,6 +368,109 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
 
   } catch (error) {
     console.error("Upload handler error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Register customer or merchant
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password, role, address, selectedRestId } = req.body;
+    if (!email || !password || !name || !role) {
+      return res.status(400).json({ error: 'Please provide all required fields' });
+    }
+
+    if (role === 'customer') {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ error: 'User with this email already exists' });
+      }
+      const newUser = await User.create({
+        name,
+        email,
+        password,
+        role,
+        address: address || "123 Indiranagar, Bangalore",
+        orderHistory: []
+      });
+      return res.json(newUser);
+    } else if (role === 'merchant') {
+      const existingMerchant = await Merchant.findOne({ email });
+      if (existingMerchant) {
+        return res.status(400).json({ error: 'Merchant with this email already exists' });
+      }
+      if (!selectedRestId) {
+        return res.status(400).json({ error: 'Please select a restaurant' });
+      }
+      // Get restaurant name
+      const rest = await Restaurant.findById(selectedRestId);
+      const restaurantName = rest ? rest.name : "Your Restaurant";
+
+      const newMerchant = await Merchant.create({
+        name,
+        email,
+        password,
+        role,
+        linkedRestaurantId: selectedRestId,
+        restaurantName
+      });
+      return res.json(newMerchant);
+    } else {
+      return res.status(400).json({ error: 'Invalid user role' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Login customer or merchant
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+    if (!email || !password || !role) {
+      return res.status(400).json({ error: 'Please provide email, password and role' });
+    }
+
+    if (role === 'customer') {
+      const user = await User.findOne({ email, role });
+      if (!user || user.password !== password) {
+        return res.status(400).json({ error: 'Invalid email or password' });
+      }
+      return res.json(user);
+    } else if (role === 'merchant') {
+      const merchant = await Merchant.findOne({ email, role });
+      if (!merchant || merchant.password !== password) {
+        return res.status(400).json({ error: 'Invalid email or password' });
+      }
+      return res.json(merchant);
+    } else {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Place order (updates customer's order history in backend DB)
+app.post('/api/users/:id/order', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { order } = req.body;
+    if (!order) {
+      return res.status(400).json({ error: 'Order details missing' });
+    }
+
+    // Add order to history
+    const updatedUser = await User.findByIdAndUpdate(id, {
+      $push: { orderHistory: order }
+    }, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });

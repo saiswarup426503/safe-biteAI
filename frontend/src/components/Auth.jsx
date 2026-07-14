@@ -13,7 +13,7 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
   
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -27,27 +27,40 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
       return;
     }
 
-    // Prepare simulated user data
-    let userObj = {
-      name: mode === "login" ? email.split("@")[0] : name,
+    const payload = {
+      name,
       email,
+      password,
       role,
-      id: "usr_" + Date.now()
+      address,
+      selectedRestId
     };
 
-    if (role === "customer") {
-      userObj.address = mode === "register" ? address : "123 Indiranagar, Bangalore";
-      userObj.orderHistory = [];
-    } else {
-      // Find restaurant name
-      const rest = restaurants.find(r => r._id === selectedRestId);
-      userObj.linkedRestaurantId = mode === "register" ? selectedRestId : (restaurants[0]?._id || "");
-      userObj.restaurantName = rest ? rest.name : (restaurants[0]?.name || "Your Restaurant");
-    }
+    try {
+      const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    // Save to localStorage
-    localStorage.setItem("currentUser", JSON.stringify(userObj));
-    onLogin(userObj);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Authentication failed");
+      }
+
+      // Map standard frontend attributes
+      const userObj = {
+        ...data,
+        id: data._id || data.id // Ensure both id fields are present
+      };
+
+      // Save to localStorage
+      localStorage.setItem("currentUser", JSON.stringify(userObj));
+      onLogin(userObj);
+    } catch (err) {
+      setError(err.message || "An error occurred during authentication.");
+    }
   };
 
   return (

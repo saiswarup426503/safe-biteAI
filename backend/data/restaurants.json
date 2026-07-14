@@ -1,0 +1,1275 @@
+[
+  {
+    "_id": "6677889900112233445566aa",
+    "name": "Biryani Zone (BTM Layout)",
+    "cctvStreamUrl": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "lastMediaUploadTimestamp": "2026-07-05T13:49:16.261Z",
+    "mediaUploadTimeline": [
+      {
+        "_id": "t1",
+        "uploadedAt": "2026-07-03T13:34:44.433Z",
+        "imageStoragePath": "/uploads/seed_kitchen_1.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.95,
+            "bbox": [
+              120,
+              150,
+              320,
+              480
+            ]
+          },
+          {
+            "label": "cap",
+            "confidence": 0.91,
+            "bbox": [
+              180,
+              40,
+              280,
+              120
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.88,
+            "bbox": [
+              140,
+              340,
+              220,
+              400
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t2",
+        "uploadedAt": "2026-07-03T14:34:44.433Z",
+        "imageStoragePath": "/uploads/seed_kitchen_2.jpg",
+        "visionVerificationScore": 66,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.93,
+            "bbox": [
+              110,
+              160,
+              300,
+              470
+            ]
+          },
+          {
+            "label": "cap",
+            "confidence": 0.89,
+            "bbox": [
+              175,
+              45,
+              275,
+              115
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783093957078",
+        "uploadedAt": "2026-07-03T15:52:37.077Z",
+        "imageStoragePath": "/uploads/1783093956610-318951274.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.94,
+            "bbox": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.89,
+            "bbox": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.86,
+            "bbox": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.81,
+            "bbox": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783096342482",
+        "uploadedAt": "2026-07-03T16:32:22.482Z",
+        "imageStoragePath": "/uploads/1783096342468-867941405.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.87,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.86,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.9,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.89,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783255964035",
+        "uploadedAt": "2026-07-05T12:52:44.031Z",
+        "imageStoragePath": "/uploads/1783255962795-636880838.jpg",
+        "visionVerificationScore": 40,
+        "detectedViolations": [
+          "Missing Cap",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.91,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783256387080",
+        "uploadedAt": "2026-07-05T12:59:47.075Z",
+        "imageStoragePath": "/uploads/1783256386973-301336058.jpg",
+        "visionVerificationScore": 30,
+        "detectedViolations": [
+          "Missing Apron",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.95,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257078187",
+        "uploadedAt": "2026-07-05T13:11:18.184Z",
+        "imageStoragePath": "/uploads/1783257078079-779831313.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.93,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.83,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.84,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.83,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257135106",
+        "uploadedAt": "2026-07-05T13:12:15.101Z",
+        "imageStoragePath": "/uploads/1783257135043-538170912.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.95,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.92,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783257987417",
+        "uploadedAt": "2026-07-05T13:26:27.411Z",
+        "imageStoragePath": "/uploads/1783257987283-93155423.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.86,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.86,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.93,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.81,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783259356266",
+        "uploadedAt": "2026-07-05T13:49:16.260Z",
+        "imageStoragePath": "/uploads/1783259356180-211447980.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.96,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.89,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      }
+    ],
+    "safeBiteAIScore": 84,
+    "createdAt": "2026-07-01T15:19:44.433Z",
+    "updatedAt": "2026-07-05T13:52:57.390Z",
+    "menu": [
+      {
+        "name": "Garlic Naan Special",
+        "price": 120,
+        "category": "Main",
+        "description": "Butter and garlic"
+      },
+      {
+        "name": "Garlic Naan Special",
+        "price": 120,
+        "category": "Main",
+        "description": "Butter and garlic"
+      }
+    ]
+  },
+  {
+    "_id": "6677889900112233445566bb",
+    "name": "The Pizza Palace (Indiranagar)",
+    "cctvStreamUrl": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "lastMediaUploadTimestamp": "2026-07-03T16:24:21.669Z",
+    "mediaUploadTimeline": [
+      {
+        "_id": "t3",
+        "uploadedAt": "2026-07-03T15:09:44.433Z",
+        "imageStoragePath": "/uploads/seed_kitchen_3.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.97,
+            "bbox": [
+              150,
+              120,
+              350,
+              450
+            ]
+          },
+          {
+            "label": "cap",
+            "confidence": 0.94,
+            "bbox": [
+              200,
+              20,
+              300,
+              100
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.92,
+            "bbox": [
+              160,
+              310,
+              240,
+              370
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095820989",
+        "uploadedAt": "2026-07-03T16:23:40.988Z",
+        "imageStoragePath": "/uploads/1783095820878-914042237.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.91,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.93,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.87,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.85,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095823697",
+        "uploadedAt": "2026-07-03T16:23:43.696Z",
+        "imageStoragePath": "/uploads/1783095823678-138961904.jpg",
+        "visionVerificationScore": 40,
+        "detectedViolations": [
+          "Missing Cap",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.85,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095825857",
+        "uploadedAt": "2026-07-03T16:23:45.856Z",
+        "imageStoragePath": "/uploads/1783095825843-90718773.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.87,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.88,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.81,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095826850",
+        "uploadedAt": "2026-07-03T16:23:46.849Z",
+        "imageStoragePath": "/uploads/1783095826840-580077930.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.88,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.95,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095828397",
+        "uploadedAt": "2026-07-03T16:23:48.397Z",
+        "imageStoragePath": "/uploads/1783095828387-126368442.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.88,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.86,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095838369",
+        "uploadedAt": "2026-07-03T16:23:58.368Z",
+        "imageStoragePath": "/uploads/1783095838358-726932595.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.96,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.92,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.81,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.78,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095842540",
+        "uploadedAt": "2026-07-03T16:24:02.539Z",
+        "imageStoragePath": "/uploads/1783095842525-513458331.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.93,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.87,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.84,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.83,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095846117",
+        "uploadedAt": "2026-07-03T16:24:06.116Z",
+        "imageStoragePath": "/uploads/1783095846106-824898955.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.92,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.9,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.86,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095847383",
+        "uploadedAt": "2026-07-03T16:24:07.382Z",
+        "imageStoragePath": "/uploads/1783095847373-818191708.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.85,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.92,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095847749",
+        "uploadedAt": "2026-07-03T16:24:07.748Z",
+        "imageStoragePath": "/uploads/1783095847725-567738480.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.9,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.89,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.91,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095848433",
+        "uploadedAt": "2026-07-03T16:24:08.432Z",
+        "imageStoragePath": "/uploads/1783095848423-839022403.jpg",
+        "visionVerificationScore": 30,
+        "detectedViolations": [
+          "Missing Apron",
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.87,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095850636",
+        "uploadedAt": "2026-07-03T16:24:10.636Z",
+        "imageStoragePath": "/uploads/1783095850627-439543953.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.95,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.93,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095853770",
+        "uploadedAt": "2026-07-03T16:24:13.769Z",
+        "imageStoragePath": "/uploads/1783095853757-332396585.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.96,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.94,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.78,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095856336",
+        "uploadedAt": "2026-07-03T16:24:16.336Z",
+        "imageStoragePath": "/uploads/1783095856326-999678357.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.89,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.91,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.84,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.82,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095857231",
+        "uploadedAt": "2026-07-03T16:24:17.231Z",
+        "imageStoragePath": "/uploads/1783095857222-376689826.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.97,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.85,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.86,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.8,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095859003",
+        "uploadedAt": "2026-07-03T16:24:19.002Z",
+        "imageStoragePath": "/uploads/1783095858992-998014882.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.92,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.89,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.88,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.86,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095860534",
+        "uploadedAt": "2026-07-03T16:24:20.534Z",
+        "imageStoragePath": "/uploads/1783095860524-170099789.jpg",
+        "visionVerificationScore": 100,
+        "detectedViolations": [],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.88,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.85,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.83,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.89,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      },
+      {
+        "_id": "t_1783095861670",
+        "uploadedAt": "2026-07-03T16:24:21.669Z",
+        "imageStoragePath": "/uploads/1783095861659-247286925.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Cap"
+        ],
+        "predictions": [
+          {
+            "label": "apron",
+            "confidence": 0.94,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.9,
+            "bbox": [
+              112,
+              272,
+              168,
+              312
+            ]
+          },
+          {
+            "label": "gloves",
+            "confidence": 0.8,
+            "bbox": [
+              231,
+              272,
+              288,
+              312
+            ]
+          }
+        ]
+      }
+    ],
+    "safeBiteAIScore": 85,
+    "createdAt": "2026-07-01T15:19:44.433Z",
+    "updatedAt": "2026-07-03T16:24:21.670Z"
+  },
+  {
+    "_id": "6677889900112233445566cc",
+    "name": "Sagar Ratna (Jayanagar)",
+    "cctvStreamUrl": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "lastMediaUploadTimestamp": "2026-07-03T16:38:21.676Z",
+    "mediaUploadTimeline": [
+      {
+        "_id": "t_1783096701677",
+        "uploadedAt": "2026-07-03T16:38:21.676Z",
+        "imageStoragePath": "/uploads/1783096701665-537742740.jpg",
+        "visionVerificationScore": 70,
+        "detectedViolations": [
+          "Missing Gloves"
+        ],
+        "predictions": [
+          {
+            "label": "cap",
+            "confidence": 0.86,
+            "bbox": [
+              160,
+              20,
+              240,
+              72
+            ]
+          },
+          {
+            "label": "apron",
+            "confidence": 0.91,
+            "bbox": [
+              128,
+              112,
+              272,
+              288
+            ]
+          }
+        ]
+      }
+    ],
+    "safeBiteAIScore": 70,
+    "createdAt": "2026-07-01T15:19:44.433Z",
+    "updatedAt": "2026-07-03T16:38:21.677Z"
+  }
+]

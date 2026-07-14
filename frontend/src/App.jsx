@@ -79,7 +79,23 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   // Real-time geolocation states
-  const [userCoords, setUserCoords] = useState(null);
+  const [userCoords, setUserCoords] = useState(() => {
+    try {
+      const saved = localStorage.getItem("currentUser");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.role === "customer" && parsed.address) {
+          const addr = parsed.address.toLowerCase();
+          if (addr.includes("indiranagar")) return { lat: 12.9719, lng: 77.6412 };
+          if (addr.includes("btm")) return { lat: 12.9166, lng: 77.6101 };
+          if (addr.includes("jayanagar")) return { lat: 12.9308, lng: 77.5838 };
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return { lat: 12.9719, lng: 77.6412 }; // Default to Indiranagar to show distance badges immediately
+  });
   const [isLocating, setIsLocating] = useState(false);
   const [osmRestaurants, setOsmRestaurants] = useState([]);
 
@@ -167,6 +183,24 @@ function App() {
       return null;
     }
   });
+
+  // Synchronize location coordinates when current user logs in or out
+  useEffect(() => {
+    if (currentUser && currentUser.role === "customer" && currentUser.address) {
+      const addr = currentUser.address.toLowerCase();
+      if (addr.includes("indiranagar")) {
+        setUserCoords({ lat: 12.9719, lng: 77.6412 });
+      } else if (addr.includes("btm")) {
+        setUserCoords({ lat: 12.9166, lng: 77.6101 });
+      } else if (addr.includes("jayanagar")) {
+        setUserCoords({ lat: 12.9308, lng: 77.5838 });
+      } else {
+        setUserCoords({ lat: 12.9719, lng: 77.6412 });
+      }
+    } else {
+      setUserCoords({ lat: 12.9719, lng: 77.6412 });
+    }
+  }, [currentUser]);
 
   // Synchronize state changes to URL hash
   useEffect(() => {
@@ -276,7 +310,7 @@ function App() {
     setActiveTab("home");
   };
 
-  const handleOrderPlacement = (restaurant, selectedItem) => {
+  const handleOrderPlacement = async (restaurant, selectedItem) => {
     if (!restaurant) {
       setActiveTab("auth-customer");
       return;
@@ -305,10 +339,30 @@ function App() {
       deliveryDuration: minutes
     };
 
-    const updatedUser = {
+    let updatedUser = {
       ...currentUser,
       orderHistory: [newOrder, ...(currentUser.orderHistory || [])]
     };
+
+    if (currentUser && (currentUser.id || currentUser._id)) {
+      try {
+        const userId = currentUser.id || currentUser._id;
+        const response = await fetch(`/api/users/${userId}/order`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: newOrder })
+        });
+        if (response.ok) {
+          const freshUser = await response.json();
+          updatedUser = {
+            ...freshUser,
+            id: freshUser._id || freshUser.id
+          };
+        }
+      } catch (err) {
+        console.error("Failed to sync order to database:", err);
+      }
+    }
 
     setCurrentUser(updatedUser);
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
