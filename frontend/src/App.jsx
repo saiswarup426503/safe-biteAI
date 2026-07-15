@@ -241,18 +241,22 @@ function App() {
   }, [activeTab]);
 
   const fetchRestaurants = async () => {
-    try {
-      const response = await fetch("/api/restaurants");
-      if (!response.ok) throw new Error("Failed to load restaurants database");
-      const data = await response.json();
-      setRestaurants(data);
-      setIsLoading(false);
-    } catch (e) {
-      console.error(e);
-      setError(e.message);
-      setIsLoading(false);
+  try {
+    const response = await fetch("/api/restaurants");
+
+    if (!response.ok) {
+      throw new Error("Failed to load restaurants database");
     }
-  };
+
+    const data = await response.json();
+    setRestaurants(data);
+    setIsLoading(false);
+  } catch (e) {
+    console.error(e);
+    setError(e.message);
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchRestaurants();

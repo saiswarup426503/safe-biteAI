@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "_id": "usr_1784117013918hw279",
+    "name": "shishira",
+    "email": "shishira@gmail.com",
+    "password": "shishi@123",
+    "role": "customer",
+    "address": "sanathnagar",
+    "orderHistory": [],
+    "createdAt": "2026-07-15T12:03:33.918Z",
+    "updatedAt": "2026-07-15T12:03:33.919Z"
+  },
+  {
+    "_id": "usr_1784117574189q502j",
+    "name": "bhagya",
+    "email": "bhagya@gmail.com",
+    "password": "bbhagya",
+    "role": "customer",
+    "address": "sanathnagar",
+    "orderHistory": [],
+    "createdAt": "2026-07-15T12:12:54.189Z",
+    "updatedAt": "2026-07-15T12:12:54.189Z"
+  }
+]
