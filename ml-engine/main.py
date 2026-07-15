@@ -22,10 +22,26 @@ model = None
 
 try:
     from ultralytics import YOLO
-    # Attempt to load lightweight YOLOv8 nano model
-    model = YOLO("yolov8n.pt")
+    # Check for custom trained model in runs folder
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    possible_paths = [
+        os.path.abspath(os.path.join(current_dir, "..", "runs", "detect", "train", "weights", "best.pt")),
+        os.path.abspath(os.path.join(current_dir, "runs", "detect", "train", "weights", "best.pt")),
+    ]
+    
+    custom_path = None
+    for p in possible_paths:
+        if os.path.exists(p):
+            custom_path = p
+            break
+            
+    if custom_path:
+        model = YOLO(custom_path)
+        print(f"✅ Loaded custom trained YOLOv8 model from {custom_path}")
+    else:
+        model = YOLO("yolov8n.pt")
+        print("✅ Loaded pre-trained YOLOv8n base model.")
     yolo_available = True
-    print("✅ YOLOv8 model loaded successfully.")
 except Exception as e:
     print("⚠️ Ultralytics or YOLOv8 model failed to load. Operating in Simulation/Heuristics mode.")
     print(f"Details: {e}")
@@ -71,59 +87,106 @@ async def analyze_image(file: UploadFile = File(...)):
                 # Since default YOLOv8n does not have caps/aprons/gloves, we detect 'person' or related items.
                 # If a person is detected, we project our compliance markers on them.
                 # If no person is detected, we simulate a kitchen scene scan.
-                person_detected = False
-                for r in results:
-                    for box in r.boxes:
-                        cls_id = int(box.cls[0])
-                        label = r.names[cls_id]
-                        if label == "person":
-                            person_detected = True
-                            # Use person box coordinates to align our compliance checks
-                            px1, py1, px2, py2 = map(int, box.xyxy[0].tolist())
-                            p_w = px2 - px1
-                            p_h = py2 - py1
+                # Check if this is the custom trained model (which contains custom classes) or base model
+                is_custom_model = False
+                if hasattr(model, "names") and isinstance(model.names, dict):
+                    is_custom_model = "apron" in model.names.values()
 
-                            # Let's project cap, apron, and gloves relative to person bounding box
-                            has_cap = "fail" not in filename and "dirty" not in filename and random.random() > 0.1
-                            has_apron = "dirty" not in filename and random.random() > 0.15
-                            has_gloves = "dirty" not in filename and "noglove" in filename or (random.random() > 0.2)
+                if is_custom_model:
+                    # In custom model mode, extract detections directly
+                    has_custom_detection = False
+                    for r in results:
+                        for box in r.boxes:
+                            cls_id = int(box.cls[0])
+                            label = r.names[cls_id]
+                            conf = round(float(box.conf[0]), 2)
+                            bbox = list(map(int, box.xyxy[0].tolist()))
+                            
+                            has_custom_detection = True
+                            
+                            if label == "apron":
+                                predictions.append({"label": "apron", "confidence": conf, "bbox": bbox})
+                            elif label == "no_apron":
+                                predictions.append({"label": "no_apron", "confidence": conf, "bbox": bbox})
+                                if "Missing Apron" not in violations:
+                                    violations.append("Missing Apron")
+                            elif label == "gloves":
+                                predictions.append({"label": "gloves", "confidence": conf, "bbox": bbox})
+                            elif label == "no_gloves":
+                                predictions.append({"label": "no_gloves", "confidence": conf, "bbox": bbox})
+                                if "Missing Gloves" not in violations:
+                                    violations.append("Missing Gloves")
+                            elif label == "hairnet":
+                                predictions.append({"label": "cap", "confidence": conf, "bbox": bbox})
+                            elif label == "no_hairnet":
+                                predictions.append({"label": "no_hairnet", "confidence": conf, "bbox": bbox})
+                                if "Missing Cap" not in violations:
+                                    violations.append("Missing Cap")
+                            elif label in ["rat", "cockroach", "lizard"]:
+                                predictions.append({"label": label, "confidence": conf, "bbox": bbox})
+                                pest_msg = f"Pest Detected ({label.capitalize()})"
+                                if pest_msg not in violations:
+                                    violations.append(pest_msg)
+                    
+                    if not has_custom_detection:
+                        # If no objects were found, but it is a custom run, we check for default violation heuristics
+                        # to ensure the page behaves consistently. Usually it means everything is clean/empty.
+                        pass
+                else:
+                    # Fallback to standard base model (yolov8n.pt) relative projection logic
+                    person_detected = False
+                    for r in results:
+                        for box in r.boxes:
+                            cls_id = int(box.cls[0])
+                            label = r.names[cls_id]
+                            if label == "person":
+                                person_detected = True
+                                # Use person box coordinates to align our compliance checks
+                                px1, py1, px2, py2 = map(int, box.xyxy[0].tolist())
+                                p_w = px2 - px1
+                                p_h = py2 - py1
 
-                            if has_cap:
-                                predictions.append({
-                                    "label": "cap",
-                                    "confidence": round(float(box.conf[0]) * 0.95, 2),
-                                    "bbox": [int(px1 + p_w*0.25), int(py1 + p_h*0.02), int(px1 + p_w*0.75), int(py1 + p_h*0.18)]
-                                })
-                            else:
-                                violations.append("Missing Cap")
+                                # Let's project cap, apron, and gloves relative to person bounding box
+                                has_cap = "fail" not in filename and "dirty" not in filename and random.random() > 0.1
+                                has_apron = "dirty" not in filename and random.random() > 0.15
+                                has_gloves = "dirty" not in filename and "noglove" in filename or (random.random() > 0.2)
 
-                            if has_apron:
-                                predictions.append({
-                                    "label": "apron",
-                                    "confidence": round(float(box.conf[0]) * 0.92, 2),
-                                    "bbox": [int(px1 + p_w*0.15), int(py1 + p_h*0.25), int(px2 - p_w*0.15), int(py1 + p_h*0.75)]
-                                })
-                            else:
-                                violations.append("Missing Apron")
+                                if has_cap:
+                                    predictions.append({
+                                        "label": "cap",
+                                        "confidence": round(float(box.conf[0]) * 0.95, 2),
+                                        "bbox": [int(px1 + p_w*0.25), int(py1 + p_h*0.02), int(px1 + p_w*0.75), int(py1 + p_h*0.18)]
+                                    })
+                                else:
+                                    violations.append("Missing Cap")
 
-                            if has_gloves:
-                                predictions.append({
-                                    "label": "gloves",
-                                    "confidence": round(float(box.conf[0]) * 0.88, 2),
-                                    "bbox": [int(px1 + p_w*0.1), int(py1 + p_h*0.7), int(px1 + p_w*0.4), int(py1 + p_h*0.82)]
-                                })
-                                predictions.append({
-                                    "label": "gloves",
-                                    "confidence": round(float(box.conf[0]) * 0.85, 2),
-                                    "bbox": [int(px2 - p_w*0.4), int(py1 + p_h*0.7), int(px2 - p_w*0.1), int(py1 + p_h*0.82)]
-                                })
-                            else:
-                                violations.append("Missing Gloves")
-                            break # Evaluate first detected person for this snapshot
+                                if has_apron:
+                                    predictions.append({
+                                        "label": "apron",
+                                        "confidence": round(float(box.conf[0]) * 0.92, 2),
+                                        "bbox": [int(px1 + p_w*0.15), int(py1 + p_h*0.25), int(px2 - p_w*0.15), int(py1 + p_h*0.75)]
+                                    })
+                                else:
+                                    violations.append("Missing Apron")
 
-                if not person_detected:
-                    # Fallback to general canvas scan if YOLO didn't locate a clear person box
-                    raise Exception("No person class found in YOLO pass; defaulting to CV projection")
+                                if has_gloves:
+                                    predictions.append({
+                                        "label": "gloves",
+                                        "confidence": round(float(box.conf[0]) * 0.88, 2),
+                                        "bbox": [int(px1 + p_w*0.1), int(py1 + p_h*0.7), int(px1 + p_w*0.4), int(py1 + p_h*0.82)]
+                                    })
+                                    predictions.append({
+                                        "label": "gloves",
+                                        "confidence": round(float(box.conf[0]) * 0.85, 2),
+                                        "bbox": [int(px2 - p_w*0.4), int(py1 + p_h*0.7), int(px2 - p_w*0.1), int(py1 + p_h*0.82)]
+                                    })
+                                else:
+                                    violations.append("Missing Gloves")
+                                break # Evaluate first detected person for this snapshot
+
+                    if not person_detected:
+                        # Fallback to general canvas scan if YOLO didn't locate a clear person box
+                        raise Exception("No person class found in YOLO pass; defaulting to CV projection")
 
             except Exception as e:
                 # If YOLO error occurred, handle it using simulation

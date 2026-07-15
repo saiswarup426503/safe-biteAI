@@ -1,0 +1,14 @@
+path: dataset
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 9
+names: ['apron', 'cockroach', 'gloves', 'hairnet', 'lizard', 'no_apron', 'no_gloves', 'no_hairnet', 'rat']
+
+roboflow:
+  workspace: gloves-detection-nyxdk
+  project: kitchenhygiene-ogkmu
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/gloves-detection-nyxdk/kitchenhygiene-ogkmu/dataset/1
