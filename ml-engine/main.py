@@ -1,6 +1,6 @@
 import os
 import random
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -101,6 +101,10 @@ def read_root():
         "yolo_active": yolo_available,
         "mode": "Live ML" if yolo_available else "CV Simulation"
     }
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
 
 @app.post("/analyze")
 async def analyze_image(
