@@ -270,22 +270,24 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
           {role === "customer" ? (
             <>
               Are you a restaurant partner?{" "}
-              <a 
-                href="#/auth/merchant" 
-                style={{ color: "#FC8019", fontWeight: "600", textDecoration: "underline" }}
+              <span 
+                onClick={() => { window.history.pushState(null, '', '/auth/merchant'); window.dispatchEvent(new Event('popstate')); }}
+                style={{ color: "#FC8019", fontWeight: "600", cursor: "pointer", textDecoration: "underline" }}
               >
                 Merchant Portal Login
-              </a>
+              </span>
             </>
           ) : (
             <>
-              Looking for the customer site?{" "}
-              <a 
-                href="#/auth/customer" 
-                style={{ color: "#FC8019", fontWeight: "600", textDecoration: "underline" }}
-              >
-                Go to Customer Login
-              </a>
+              <p style={{ marginTop: "20px", fontSize: "14px", color: "#666" }}>
+                Consumer looking for safe food?{" "}
+                <span 
+                  onClick={() => { window.history.pushState(null, '', '/auth/customer'); window.dispatchEvent(new Event('popstate')); }}
+                  style={{ color: "#FC8019", textDecoration: "none", fontWeight: "600", cursor: "pointer" }}
+                >
+                  Consumer Login
+                </span>
+              </p>
             </>
           )}
         </div>

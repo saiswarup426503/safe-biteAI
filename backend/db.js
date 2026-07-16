@@ -124,5 +124,6 @@ class SupabaseWrapper {
 export const Restaurant = new SupabaseWrapper('restaurants');
 export const User = new SupabaseWrapper('users');
 export const Merchant = new SupabaseWrapper('merchants');
+export const Order = new SupabaseWrapper('orders');
 
 Restaurant.isFallbackMode = () => false;

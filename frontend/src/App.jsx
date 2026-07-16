@@ -44,14 +44,14 @@ const restaurantMetaData = {
     lng: 77.5838
   }
 };
-const getTabFromHash = () => {
-  const hash = window.location.hash;
-  if (hash === "#/analytics") return "analytics";
-  if (hash === "#/guidelines") return "guidelines";
-  if (hash === "#/profile") return "profile";
-  if (hash === "#/orders") return "orders";
-  if (hash === "#/auth/merchant") return "auth-merchant";
-  if (hash === "#/auth/customer" || hash === "#/auth") return "auth-customer";
+const getTabFromPath = () => {
+  const path = window.location.pathname;
+  if (path === "/analytics") return "analytics";
+  if (path === "/guidelines") return "guidelines";
+  if (path === "/profile") return "profile";
+  if (path === "/orders") return "orders";
+  if (path === "/auth/merchant") return "auth-merchant";
+  if (path === "/auth/customer" || path === "/auth") return "auth-customer";
   return "home";
 };
 
@@ -73,21 +73,11 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 function App() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRes, setSelectedRes] = useState(null);
-  const [activeTab, setActiveTab] = useState(getTabFromHash); // home, analytics, guidelines, profile, orders, auth
+  const [activeTab, setActiveTab] = useState(getTabFromPath); // home, analytics, guidelines, profile, orders, auth
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [todos, setTodos] = useState([]);
-
-  useEffect(() => {
-    async function getTodos() {
-      const { data: todos, error } = await supabase.from('todos').select();
-      if (todos) setTodos(todos);
-      if (error) console.error("Supabase Todos Error:", error);
-    }
-    getTodos();
-  }, []);
 
   // Real-time geolocation states
   const [userCoords, setUserCoords] = useState(() => {
@@ -213,33 +203,28 @@ function App() {
     }
   }, [currentUser]);
 
-  // Synchronize state changes to URL hash
+  // Synchronize state changes to URL path
   useEffect(() => {
-    const currentHash = window.location.hash;
-    let targetHash = "#/";
-    if (activeTab === "home") targetHash = "#/";
-    else if (activeTab === "auth-customer") targetHash = "#/auth/customer";
-    else if (activeTab === "auth-merchant") targetHash = "#/auth/merchant";
-    else targetHash = `#/${activeTab}`;
+    const currentPath = window.location.pathname;
+    let targetPath = "/";
+    if (activeTab === "home") targetPath = "/";
+    else if (activeTab === "auth-customer") targetPath = "/auth/customer";
+    else if (activeTab === "auth-merchant") targetPath = "/auth/merchant";
+    else targetPath = `/${activeTab}`;
 
-    if (currentHash !== targetHash) {
-      window.location.hash = targetHash;
+    if (currentPath !== targetPath) {
+      window.history.pushState(null, '', targetPath);
     }
   }, [activeTab]);
 
-  // Synchronize hash changes (browser back/forward button) to state
+  // Synchronize history changes (browser back/forward button) to state
   useEffect(() => {
-    const handleHashChange = () => {
-      setActiveTab(getTabFromHash());
+    const handlePopState = () => {
+      setActiveTab(getTabFromPath());
     };
-    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handlePopState);
 
-    // Set initial hash on mount if empty
-    if (!window.location.hash) {
-      window.location.hash = "#/";
-    }
-
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   // Clear selected restaurant when navigating away from the merchant portal (profile tab)
@@ -327,8 +312,14 @@ function App() {
   };
 
   const handleOrderPlacement = async (restaurant, selectedItem) => {
-    if (!restaurant) {
+    if (!currentUser || (!currentUser.id && !currentUser._id)) {
+      alert("Please sign in to place an order!");
       setActiveTab("auth-customer");
+      return;
+    }
+
+    if (!restaurant) {
+      setActiveTab("home");
       return;
     }
 
@@ -355,33 +346,24 @@ function App() {
       deliveryDuration: minutes
     };
 
-    let updatedUser = {
-      ...currentUser,
-      orderHistory: [newOrder, ...(currentUser.orderHistory || [])]
-    };
-
-    if (currentUser && (currentUser.id || currentUser._id)) {
-      try {
-        const userId = currentUser.id || currentUser._id;
-        const response = await fetch(`/api/users/${userId}/order`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ order: newOrder })
-        });
-        if (response.ok) {
-          const freshUser = await response.json();
-          updatedUser = {
-            ...freshUser,
-            id: freshUser._id || freshUser.id
-          };
-        }
-      } catch (err) {
-        console.error("Failed to sync order to database:", err);
+    try {
+      const userId = currentUser.id || currentUser._id;
+      const response = await fetch(`/api/users/${userId}/order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: newOrder })
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to sync order to database", errorData);
+        alert(`Failed to save order to database: ${errorData.error}`);
+        return;
       }
+    } catch (err) {
+      console.error("Failed to sync order to database:", err);
+      alert("Network error: Failed to reach the server.");
+      return;
     }
-
-    setCurrentUser(updatedUser);
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
     alert(`🎉 Order placed successfully at ${restaurant.name.split(" (")[0]}!\nItem: ${itemText}\nSafeBite is active and monitoring kitchen safety in real-time.`);
     setActiveTab("orders");
@@ -495,17 +477,6 @@ function App() {
             isLocating={isLocating}
             setIsLocating={setIsLocating}
           />
-
-          {todos && todos.length > 0 && (
-            <div style={{ padding: "15px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "14px", margin: "20px 0", color: "#166534" }}>
-              <h4 style={{ margin: "0 0 10px 0" }}>⚡ Data from Supabase ('todos' table):</h4>
-              <ul style={{ margin: 0, paddingLeft: "20px" }}>
-                {todos.map((todo) => (
-                  <li key={todo.id}>{todo.name || todo.title || JSON.stringify(todo)}</li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           <Categories
             selectedCategory={selectedCategory}

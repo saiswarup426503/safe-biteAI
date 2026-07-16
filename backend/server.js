@@ -6,7 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import FormData from 'form-data';
-import { Restaurant, User, Merchant } from './db.js';
+import { Restaurant, User, Merchant, Order } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -466,8 +466,9 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Place order (updates customer's order history in backend DB)
+// Place order (inserts into relational orders table)
 app.post('/api/users/:id/order', async (req, res) => {
+  console.log(`Received order request for user ${req.params.id}`, req.body);
   try {
     const { id } = req.params;
     const { order } = req.body;
@@ -475,20 +476,42 @@ app.post('/api/users/:id/order', async (req, res) => {
       return res.status(400).json({ error: 'Order details missing' });
     }
 
-    // Add order to history
-    const updatedUser = await User.findByIdAndUpdate(id, {
-      $push: { orderHistory: order }
-    }, { new: true });
+    // Convert the incoming JSON order to relational format
+    const dbOrder = {
+      user_id: id,
+      restaurant_id: order.restaurantId,
+      restaurantName: order.restaurantName,
+      item: order.item,
+      score: order.score,
+      deliveryDuration: order.deliveryDuration,
+      created_at: new Date().toISOString()
+    };
 
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const savedOrder = await Order.create(dbOrder);
 
-    res.json(updatedUser);
+    res.json({ message: "Order placed successfully", order: savedOrder });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Fetch user orders
+app.get('/api/users/:id/orders', async (req, res) => {
+  try {
+    const { id } = req.params;
+    // We use the raw Supabase client to fetch ordered by creation date
+    // But since Order.find doesn't support sorting out of the box, we'll just filter by user_id
+    const orders = await Order.find({ user_id: id });
+    
+    // Sort orders newest first in memory
+    orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // Start Express gateway
 app.listen(PORT, () => {

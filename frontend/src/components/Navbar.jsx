@@ -1,9 +1,9 @@
 import { Home, BookOpen, Video, ShoppingBag, Store, User, LogOut } from "lucide-react";
 
-function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
+function Navbar({ activeTab, setActiveTab, currentUser, onLogout, onHomeClick }) {
   return (
     <header className="navbar">
-      <a href="#/" onClick={onHomeClick} className="logo" style={{ color: "inherit", display: "flex", alignItems: "center", gap: "15px" }}>
+      <a href="/" onClick={(e) => { e.preventDefault(); onHomeClick ? onHomeClick(e) : setActiveTab('home'); }} className="logo" style={{ color: "inherit", display: "flex", alignItems: "center", gap: "15px" }}>
         <div className="logo-icon">
           🛡️
         </div>
@@ -16,8 +16,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
       <nav style={{ display: "flex", alignItems: "center", gap: "24px" }}>
         <a 
           className={activeTab === "home" ? "active" : ""} 
-          href="#/"
-          onClick={onHomeClick}
+          href="/"
+          onClick={(e) => { e.preventDefault(); onHomeClick ? onHomeClick(e) : setActiveTab('home'); }}
         >
           <Home size={18} />
           Home
@@ -25,7 +25,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
 
         <a 
           className={activeTab === "guidelines" ? "active" : ""} 
-          href="#/guidelines"
+          href="/guidelines"
+          onClick={(e) => { e.preventDefault(); setActiveTab('guidelines'); }}
         >
           <BookOpen size={18} />
           Guidelines
@@ -33,7 +34,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
 
         <a 
           className={activeTab === "analytics" ? "active" : ""} 
-          href="#/analytics"
+          href="/analytics"
+          onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
         >
           <Video size={18} />
           Analytics
@@ -43,7 +45,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
         {currentUser && currentUser.role === "customer" && (
           <a 
             className={activeTab === "orders" ? "active" : ""} 
-            href="#/orders"
+            href="/orders"
+            onClick={(e) => { e.preventDefault(); setActiveTab('orders'); }}
           >
             <ShoppingBag size={18} />
             My Orders
@@ -54,7 +57,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
         {currentUser && currentUser.role === "merchant" && (
           <a 
             className={activeTab === "profile" ? "active" : ""} 
-            href="#/profile"
+            href="/profile"
+            onClick={(e) => { e.preventDefault(); setActiveTab('profile'); }}
           >
             <Store size={18} />
             Merchant Portal
@@ -98,7 +102,8 @@ function Navbar({ activeTab, currentUser, onLogout, onHomeClick }) {
         ) : (
           <a 
             className={activeTab === "auth-customer" ? "active" : ""} 
-            href="#/auth/customer"
+            href="/auth/customer"
+            onClick={(e) => { e.preventDefault(); setActiveTab('auth-customer'); }}
             style={{
               background: "#FC8019",
               color: "white",

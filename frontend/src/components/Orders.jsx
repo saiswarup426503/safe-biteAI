@@ -38,7 +38,31 @@ function DeliveryTimer({ timestamp, duration }) {
 }
 
 export default function Orders({ user, onWatchKitchen }) {
-  const orderHistory = user?.orderHistory || [];
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user || (!user.id && !user._id)) return;
+      try {
+        const userId = user.id || user._id;
+        const res = await fetch(`/api/users/${userId}/orders`);
+        if (res.ok) {
+          const data = await res.json();
+          setOrderHistory(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [user]);
+
+  if (loading) {
+    return <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>Loading your orders...</div>;
+  }
 
   return (
     <main className="container" style={{ padding: "40px 0", minHeight: "calc(100vh - 200px)" }}>
@@ -58,7 +82,7 @@ export default function Orders({ user, onWatchKitchen }) {
         {orderHistory.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {orderHistory.map((order) => {
-              const orderDate = new Date(order.timestamp).toLocaleString();
+              const orderDate = new Date(order.created_at).toLocaleString();
               return (
                 <div 
                   key={order.id} 
@@ -106,7 +130,7 @@ export default function Orders({ user, onWatchKitchen }) {
                     {/* Estimated Delivery Countdown Timer */}
                     <div style={{ marginTop: "6px" }}>
                       <DeliveryTimer 
-                        timestamp={order.timestamp} 
+                        timestamp={order.created_at} 
                         duration={order.deliveryDuration || 25} 
                       />
                     </div>
