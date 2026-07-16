@@ -439,23 +439,6 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
             <div className="console-premium-card">
               <h3 className="card-title" style={{ marginBottom: "15px" }}><Upload size={18} /> Upload Audit Snap</h3>
               
-              {/* AI Model Dropdown */}
-              <div className="form-group-item" style={{ marginBottom: "15px" }}>
-                <label className="form-group-label" style={{ fontSize: "10.5px", color: "#6b7280" }}>AI Detection Model</label>
-                <select 
-                  value={selectedModel} 
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="form-group-select"
-                  style={{ width: "100%", padding: "10px 12px", fontSize: "13px", marginTop: "4px" }}
-                >
-                  <option value="custom">Custom Fine-Tuned Model (Default)</option>
-                  <option value="yolov8n">YOLOv8 Nano (Fastest, ~3.2M params)</option>
-                  <option value="yolov8s">YOLOv8 Small (Balanced, ~11.2M params)</option>
-                  <option value="yolov8m">YOLOv8 Medium (High Accuracy, ~25.9M params)</option>
-                  <option value="yolov8l">YOLOv8 Large (Very High Accuracy, ~43.7M params)</option>
-                  <option value="yolov8x">YOLOv8 XLarge (Maximum Accuracy, ~68.2M params)</option>
-                </select>
-              </div>
 
               {isUploading ? (
                 <div className="upload-loading-area">
@@ -528,8 +511,18 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
                   </div>
                   <div className="stats-results-card">
                     <span className="results-card-label">AI Model Used</span>
-                    <strong className="results-card-val text-blue-600" style={{ fontSize: "13px", color: "#3b82f6", textTransform: "capitalize", marginTop: "5px" }}>
-                      {activeAnalysis.modelUsed || "Custom"}
+                    <strong className="results-card-val text-blue-600" style={{ fontSize: "13px", color: "#3b82f6", marginTop: "5px" }}>
+                      {(() => {
+                        const m = activeAnalysis.modelUsed;
+                        if (m === 'yolov8n') return 'YOLOv8 Nano';
+                        if (m === 'yolov8s') return 'YOLOv8 Small';
+                        if (m === 'yolov8m') return 'YOLOv8 Medium';
+                        if (m === 'yolov8l') return 'YOLOv8 Large';
+                        if (m === 'yolov8x') return 'YOLOv8 XLarge';
+                        if (m === 'custom') return 'SafeBite AI Model';
+                        if (m === 'simulation') return 'Simulation Mode';
+                        return m ? m.toUpperCase() : 'YOLOv8 XLarge';
+                      })()}
                     </strong>
                   </div>
                   <div className="stats-results-card">

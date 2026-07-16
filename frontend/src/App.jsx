@@ -250,6 +250,7 @@ function App() {
 
     const data = await response.json();
     setRestaurants(data);
+    setError(null); // Clear any previous errors on success
     setIsLoading(false);
   } catch (e) {
     console.error(e);
@@ -389,8 +390,23 @@ function App() {
     };
 
     let meta = { ...defaultMeta };
-    if (userCoords) {
-      // Mock close-by coordinates relative to the user to place DB elements near them
+    
+    if (res.location) {
+      meta.location = res.location;
+      const addr = res.location.toLowerCase();
+      // Simple mock geocoding based on address keyword
+      if (addr.includes("indiranagar")) {
+        meta.lat = 12.9719;
+        meta.lng = 77.6412;
+      } else if (addr.includes("btm")) {
+        meta.lat = 12.9166;
+        meta.lng = 77.6101;
+      } else if (addr.includes("jayanagar")) {
+        meta.lat = 12.9308;
+        meta.lng = 77.5838;
+      }
+    } else if (userCoords) {
+      // Mock close-by coordinates relative to the user to place old DB elements near them
       if (res.name.includes("Pizza")) {
         meta.lat = userCoords.lat - 0.006;
         meta.lng = userCoords.lng + 0.008;

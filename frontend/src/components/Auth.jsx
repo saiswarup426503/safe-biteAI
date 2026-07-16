@@ -8,8 +8,9 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [address, setAddress] = useState("");
-  const [selectedRestId, setSelectedRestId] = useState("");
+  const [address, setAddress] = useState(""); // customer delivery address
+  const [restaurantName, setRestaurantName] = useState("");
+  const [restaurantAddress, setRestaurantAddress] = useState("");
   
   const [error, setError] = useState("");
 
@@ -22,8 +23,8 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
       return;
     }
 
-    if (role === "merchant" && mode === "register" && !selectedRestId) {
-      setError("Please select the restaurant store you own.");
+    if (role === "merchant" && mode === "register" && !restaurantName) {
+      setError("Please provide your restaurant name.");
       return;
     }
 
@@ -33,7 +34,8 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
       password,
       role,
       address,
-      selectedRestId
+      restaurantName,
+      restaurantAddress
     };
 
     try {
@@ -162,31 +164,50 @@ export default function Auth({ role = "customer", restaurants, onLogin, onCancel
 
           {/* Merchant Extra Field */}
           {role === "merchant" && mode === "register" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Select Your Restaurant</label>
-              <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
-                <Store size={16} color="#888" />
-                <select
-                  value={selectedRestId}
-                  onChange={(e) => setSelectedRestId(e.target.value)}
-                  style={{
-                    border: "none",
-                    outline: "none",
-                    background: "transparent",
-                    width: "100%",
-                    fontSize: "14px",
-                    marginLeft: "10px",
-                    cursor: "pointer",
-                    color: selectedRestId ? "#2d2d2d" : "#888"
-                  }}
-                >
-                  <option value="" disabled>Choose your store...</option>
-                  {restaurants.map(r => (
-                    <option key={r._id} value={r._id}>{r.name}</option>
-                  ))}
-                </select>
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Restaurant Name</label>
+                <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+                  <Store size={16} color="#888" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Spice Symphony"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                      width: "100%",
+                      fontSize: "14px",
+                      marginLeft: "10px",
+                      color: "#2d2d2d"
+                    }}
+                  />
+                </div>
               </div>
-            </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>Restaurant Address</label>
+                <div className="search" style={{ margin: 0, padding: "12px 16px", borderRadius: "12px", background: "#fdfcfa", border: "1.5px solid #eee" }}>
+                  <MapPin size={16} color="#888" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Indiranagar, Bangalore"
+                    value={restaurantAddress}
+                    onChange={(e) => setRestaurantAddress(e.target.value)}
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                      width: "100%",
+                      fontSize: "14px",
+                      marginLeft: "10px",
+                      color: "#2d2d2d"
+                    }}
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <button 

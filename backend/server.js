@@ -266,7 +266,7 @@ app.put('/api/restaurants/:id/menu', async (req, res) => {
 app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, res) => {
   try {
     const { id } = req.params;
-    const modelSize = req.query.model_size || 'custom';
+    const modelSize = req.query.model_size || 'yolov8x';
     
     if (!req.file) {
       return res.status(400).json({ error: 'No image file uploaded' });
@@ -406,20 +406,28 @@ app.post('/api/auth/register', async (req, res) => {
       if (existingMerchant) {
         return res.status(400).json({ error: 'Merchant with this email already exists' });
       }
-      if (!selectedRestId) {
-        return res.status(400).json({ error: 'Please select a restaurant' });
+      
+      const { restaurantName, restaurantAddress } = req.body;
+      if (!restaurantName) {
+        return res.status(400).json({ error: 'Please provide a restaurant name' });
       }
-      // Get restaurant name
-      const rest = await Restaurant.findById(selectedRestId);
-      const restaurantName = rest ? rest.name : "Your Restaurant";
+      
+      // Create a new restaurant for the merchant
+      const newRest = await Restaurant.create({
+        name: restaurantName,
+        location: restaurantAddress || "Bangalore",
+        cctvStreamUrl: "https://demo-stream.com/live", // Default/Placeholder stream URL
+        safeBiteAIScore: 100,
+        menu: []
+      });
 
       const newMerchant = await Merchant.create({
         name,
         email,
         password,
         role,
-        linkedRestaurantId: selectedRestId,
-        restaurantName
+        linkedRestaurantId: newRest._id,
+        restaurantName: newRest.name
       });
       return res.json(newMerchant);
     } else {

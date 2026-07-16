@@ -282,6 +282,7 @@ try {
 // Define Mongoose Schemas
 const RestaurantSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  location: { type: String },
   cctvStreamUrl: { type: String, required: true },
   lastMediaUploadTimestamp: { type: Date },
   mediaUploadTimeline: [{
