@@ -294,7 +294,8 @@ const RestaurantSchema = new mongoose.Schema({
       label: { type: String },
       confidence: { type: Number },
       bbox: [{ type: Number }] // [x1, y1, x2, y2]
-    }]
+    }],
+    modelUsed: { type: String }
   }],
   safeBiteAIScore: { type: Number, default: 100 },
   menu: [{

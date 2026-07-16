@@ -1,10 +1,22 @@
 import os
 import sys
+import argparse
 from ultralytics import YOLO
 
 def main():
+    parser = argparse.ArgumentParser(description="SafeBite AI - YOLOv8 Training Script")
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        default="yolov8s.pt", 
+        choices=["yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov8l.pt", "yolov8x.pt"],
+        help="Base model size to train on for higher accuracy (default: yolov8s.pt)"
+    )
+    args = parser.parse_args()
+
     print("==================================================")
     print("🚀 Starting SafeBite AI YOLOv8 Training Script")
+    print(f"📦 Selected Base Model: {args.model}")
     print("==================================================")
     
     # Locate dataset configuration path
@@ -18,8 +30,8 @@ def main():
     print(f"✅ Found dataset configuration at: {data_yaml_path}")
 
     # Load pre-trained model (weights will download automatically if not present)
-    print("⚡ Loading pre-trained YOLOv8n base model...")
-    model = YOLO("yolov8n.pt")
+    print(f"⚡ Loading pre-trained {args.model} base model...")
+    model = YOLO(args.model)
 
     # Start training process
     # Note: workers=0 is required on Windows to prevent multiprocessing issues.
@@ -28,7 +40,7 @@ def main():
     try:
         model.train(
             data=data_yaml_path,
-            epochs=6,
+            epochs=4,
             imgsz=640,
             device="cpu",   # Uses CPU for compatibility. Change to device=0 if you have a CUDA GPU.
             workers=0,      # Prevents multi-threading errors on Windows

@@ -63,7 +63,7 @@ const runIntegration = async () => {
     });
 
     const uploadResponse = await axios.post(
-      `http://127.0.0.1:5000/api/restaurants/${testRes._id}/upload`,
+      `http://127.0.0.1:5000/api/restaurants/${testRes._id}/upload?model_size=yolov8s`,
       form,
       {
         headers: {
@@ -77,9 +77,13 @@ const runIntegration = async () => {
     
     if (body.success) {
       console.log("✅ Integration upload succeeded!");
+      console.log("✅ Model Used:", body.latestAnalysis.modelUsed);
       console.log("✅ Latest Analysis Verification Score:", body.latestAnalysis.visionVerificationScore);
       console.log("✅ Detected predictions count:", body.latestAnalysis.predictions?.length);
       console.log("✅ Updated Restaurant SafeBite AI Score:", body.restaurant.safeBiteAIScore);
+      if (body.latestAnalysis.modelUsed !== 'yolov8s') {
+        throw new Error(`Model mismatch: expected yolov8s, got ${body.latestAnalysis.modelUsed}`);
+      }
     } else {
       throw new Error(`Integration upload failed: ${body.error || 'unknown error'}`);
     }

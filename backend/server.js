@@ -266,6 +266,8 @@ app.put('/api/restaurants/:id/menu', async (req, res) => {
 app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, res) => {
   try {
     const { id } = req.params;
+    const modelSize = req.query.model_size || 'custom';
+    
     if (!req.file) {
       return res.status(400).json({ error: 'No image file uploaded' });
     }
@@ -278,11 +280,12 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
     const relativePath = `/uploads/${req.file.filename}`;
     const absolutePath = req.file.path;
 
-    console.log(`Ingested image ${relativePath} for restaurant ${restaurant.name}. Dispatching to FastAPI...`);
+    console.log(`Ingested image ${relativePath} for restaurant ${restaurant.name} using model ${modelSize}. Dispatching to FastAPI...`);
 
     // Prepare Multipart Form Data to dispatch to FastAPI
     const form = new FormData();
     form.append('file', fs.createReadStream(absolutePath), req.file.filename);
+    form.append('model_size', modelSize);
 
     let visionResult = {
       success: false,
@@ -332,7 +335,10 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
         success: true,
         visionVerificationScore,
         detectedViolations,
-        predictions
+        predictions,
+        metadata: {
+          model: modelSize
+        }
       };
     }
 
@@ -342,7 +348,8 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
       imageStoragePath: relativePath,
       visionVerificationScore: visionResult.visionVerificationScore,
       detectedViolations: visionResult.detectedViolations,
-      predictions: visionResult.predictions
+      predictions: visionResult.predictions,
+      modelUsed: visionResult.metadata?.model || modelSize
     };
 
     // Calculate new base score: average of the timeline items + latest score

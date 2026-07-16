@@ -25,6 +25,7 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
   const [uploadError, setUploadError] = useState(null);
   const [activeAnalysis, setActiveAnalysis] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("custom");
   
   const canvasRef = useRef(null);
 
@@ -219,7 +220,7 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
     formData.append("snapshot", file);
 
     try {
-      const response = await fetch(`/api/restaurants/${restaurant._id}/upload`, {
+      const response = await fetch(`/api/restaurants/${restaurant._id}/upload?model_size=${selectedModel}`, {
         method: "POST",
         body: formData,
       });
@@ -438,6 +439,24 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
             <div className="console-premium-card">
               <h3 className="card-title" style={{ marginBottom: "15px" }}><Upload size={18} /> Upload Audit Snap</h3>
               
+              {/* AI Model Dropdown */}
+              <div className="form-group-item" style={{ marginBottom: "15px" }}>
+                <label className="form-group-label" style={{ fontSize: "10.5px", color: "#6b7280" }}>AI Detection Model</label>
+                <select 
+                  value={selectedModel} 
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="form-group-select"
+                  style={{ width: "100%", padding: "10px 12px", fontSize: "13px", marginTop: "4px" }}
+                >
+                  <option value="custom">Custom Fine-Tuned Model (Default)</option>
+                  <option value="yolov8n">YOLOv8 Nano (Fastest, ~3.2M params)</option>
+                  <option value="yolov8s">YOLOv8 Small (Balanced, ~11.2M params)</option>
+                  <option value="yolov8m">YOLOv8 Medium (High Accuracy, ~25.9M params)</option>
+                  <option value="yolov8l">YOLOv8 Large (Very High Accuracy, ~43.7M params)</option>
+                  <option value="yolov8x">YOLOv8 XLarge (Maximum Accuracy, ~68.2M params)</option>
+                </select>
+              </div>
+
               {isUploading ? (
                 <div className="upload-loading-area">
                   <RefreshCw size={20} className="spinner-icon" />
@@ -500,7 +519,7 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
                 </div>
 
                 {/* Verification Stats Grid */}
-                <div className="stats-results-grid">
+                <div className="stats-results-grid" style={{ gridTemplateColumns: "1fr 1fr 1.2fr" }}>
                   <div className="stats-results-card">
                     <span className="results-card-label">Verification Score</span>
                     <strong className={`results-card-val ${activeAnalysis.visionVerificationScore >= 80 ? "green-text" : "red-text"}`}>
@@ -508,8 +527,14 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
                     </strong>
                   </div>
                   <div className="stats-results-card">
-                    <span className="results-card-label">Violations Detected</span>
-                    <strong className={`results-card-val ${activeAnalysis.detectedViolations.length === 0 ? "green-text" : "red-text"}`} style={{ fontSize: "14px" }}>
+                    <span className="results-card-label">AI Model Used</span>
+                    <strong className="results-card-val text-blue-600" style={{ fontSize: "13px", color: "#3b82f6", textTransform: "capitalize", marginTop: "5px" }}>
+                      {activeAnalysis.modelUsed || "Custom"}
+                    </strong>
+                  </div>
+                  <div className="stats-results-card">
+                    <span className="results-card-label">Violations</span>
+                    <strong className={`results-card-val ${activeAnalysis.detectedViolations.length === 0 ? "green-text" : "red-text"}`} style={{ fontSize: "12px", marginTop: "5px" }}>
                       {activeAnalysis.detectedViolations.length === 0 ? "None - Compliant" : activeAnalysis.detectedViolations.join(", ")}
                     </strong>
                   </div>
@@ -964,7 +989,7 @@ export default function MerchantConsole({ restaurant, onUploadSuccess }) {
         }
         .stats-results-grid {
           display: grid;
-          grid-template-columns: 1fr 1.5fr;
+          grid-template-columns: 1fr 1fr 1.2fr;
           gap: 12px;
         }
         .stats-results-card {

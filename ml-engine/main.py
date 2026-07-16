@@ -1,6 +1,6 @@
 import os
 import random
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -18,7 +18,8 @@ app.add_middleware(
 
 # Global YOLO model status
 yolo_available = False
-model = None
+custom_path = None
+loaded_models = {}
 
 try:
     from ultralytics import YOLO
@@ -26,7 +27,6 @@ try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     detect_dir = os.path.abspath(os.path.join(current_dir, "..", "runs", "detect"))
     
-    custom_path = None
     if os.path.exists(detect_dir):
         train_dirs = [d for d in os.listdir(detect_dir) if d.startswith("train")]
         
@@ -45,16 +45,53 @@ try:
                 custom_path = p
                 break
             
-    if custom_path:
-        model = YOLO(custom_path)
-        print(f"✅ Loaded custom trained YOLOv8 model from {custom_path}")
-    else:
-        model = YOLO("yolov8s.pt")
-        print("✅ Loaded pre-trained YOLOv8s base model.")
     yolo_available = True
 except Exception as e:
-    print("⚠️ Ultralytics or YOLOv8 model failed to load. Operating in Simulation/Heuristics mode.")
+    print("⚠️ Ultralytics or YOLOv8 failed to import. Operating in Simulation/Heuristics mode.")
     print(f"Details: {e}")
+
+def get_yolo_model(model_size: str = None):
+    """
+    Dynamically loads and caches the requested YOLOv8 model.
+    Supported model_size: 'custom', 'yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x'
+    """
+    global yolo_available, custom_path, loaded_models
+    if not yolo_available:
+        return None, "simulation"
+        
+    model_mapping = {
+        "custom": custom_path,
+        "yolov8n": "yolov8n.pt",
+        "yolov8s": "yolov8s.pt",
+        "yolov8m": "yolov8m.pt",
+        "yolov8l": "yolov8l.pt",
+        "yolov8x": "yolov8x.pt"
+    }
+    
+    # Resolve target model identifier and weights
+    requested = model_size if model_size in model_mapping else "custom"
+    target_weights = model_mapping[requested]
+    
+    # Fallback if custom path requested but not found
+    if requested == "custom" and not target_weights:
+        print("⚠️ Custom fine-tuned weights not found. Falling back to yolov8s.pt")
+        requested = "yolov8s"
+        target_weights = "yolov8s.pt"
+        
+    if requested not in loaded_models:
+        print(f"⚡ Loading YOLOv8 model '{requested}' ({target_weights})...")
+        try:
+            from ultralytics import YOLO
+            loaded_models[requested] = YOLO(target_weights)
+            print(f"✅ Loaded YOLOv8 '{requested}' successfully.")
+        except Exception as e:
+            print(f"❌ Error loading YOLOv8 '{requested}': {e}")
+            if requested != "yolov8n":
+                print("🔄 Falling back to yolov8n.pt")
+                return get_yolo_model("yolov8n")
+            raise e
+            
+    return loaded_models[requested], requested
 
 @app.get("/")
 def read_root():
@@ -66,7 +103,10 @@ def read_root():
     }
 
 @app.post("/analyze")
-async def analyze_image(file: UploadFile = File(...)):
+async def analyze_image(
+    file: UploadFile = File(...),
+    model_size: str = Form(None)
+):
     global yolo_available
     try:
         contents = await file.read()
@@ -83,7 +123,10 @@ async def analyze_image(file: UploadFile = File(...)):
         # Apron: Torso area (approx y: 25% to 75% of height)
         # Gloves: Hand areas (approx y: 65% to 85% of height)
 
-        if yolo_available and model is not None:
+        # Get dynamically requested model
+        active_model, actual_model_name = get_yolo_model(model_size)
+
+        if yolo_available and active_model is not None:
             try:
                 # Save uploaded temp file to run through ultralytics
                 temp_filename = f"temp_{file.filename}"
@@ -91,7 +134,7 @@ async def analyze_image(file: UploadFile = File(...)):
                     f.write(contents)
                 
                 # Run standard inference
-                results = model(temp_filename, verbose=False)
+                results = active_model(temp_filename, verbose=False)
                 os.remove(temp_filename)
 
                 # Since default YOLOv8n does not have caps/aprons/gloves, we detect 'person' or related items.
@@ -99,8 +142,8 @@ async def analyze_image(file: UploadFile = File(...)):
                 # If no person is detected, we simulate a kitchen scene scan.
                 # Check if this is the custom trained model (which contains custom classes) or base model
                 is_custom_model = False
-                if hasattr(model, "names") and isinstance(model.names, dict):
-                    is_custom_model = "apron" in model.names.values()
+                if hasattr(active_model, "names") and isinstance(active_model.names, dict):
+                    is_custom_model = "apron" in active_model.names.values()
 
                 if is_custom_model:
                     # In custom model mode, extract detections directly
@@ -207,7 +250,7 @@ async def analyze_image(file: UploadFile = File(...)):
                 print(f"Failed live YOLO inference, falling back to CV simulation: {e}")
 
         # CV Simulation / Fallback engine logic
-        if not yolo_available:
+        if not yolo_available or active_model is None:
             # Check for force fail or success keywords in filename
             is_dirty = "dirty" in filename or "fail" in filename or "violation" in filename
             is_clean = "clean" in filename or "pass" in filename
@@ -281,7 +324,8 @@ async def analyze_image(file: UploadFile = File(...)):
             "detectedViolations": violations,
             "predictions": predictions,
             "metadata": {
-                "engine": "YOLOv8 Inference" if yolo_available else "CV Simulation Core",
+                "engine": f"YOLOv8 {actual_model_name.upper()} Inference" if active_model else "CV Simulation Core",
+                "model": actual_model_name,
                 "resolution": f"{width}x{height}",
                 "filename": file.filename
             }
