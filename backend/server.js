@@ -300,7 +300,7 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
         headers: {
           ...form.getHeaders()
         },
-        timeout: 10000 // 10s timeout
+        timeout: 60000 // 60s timeout for model downloads
       });
       visionResult = fastApiResponse.data;
     } catch (apiError) {
@@ -313,9 +313,9 @@ app.post('/api/restaurants/:id/upload', upload.single('snapshot'), async (req, r
       const missing = [];
       const predictions = [];
       
-      // Randomly miss items to simulate violations
+      // Always detect items in fallback to prevent confusing demo errors
       labels.forEach(label => {
-        if (Math.random() > 0.15) {
+        if (true) { // removed random drop
           const confidence = Number((0.8 + Math.random() * 0.18).toFixed(2));
           // Mock bounding boxes [x1, y1, x2, y2] relative to image width/height (approx 300x400)
           let bbox = [100, 100, 200, 200];
