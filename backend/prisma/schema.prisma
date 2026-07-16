@@ -1,0 +1,44 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Restaurant {
+  id                       String    @id @default(uuid())
+  name                     String
+  location                 String?
+  cctvStreamUrl            String
+  lastMediaUploadTimestamp DateTime?
+  mediaUploadTimeline      Json[]    @default([])
+  safeBiteAIScore          Float     @default(100)
+  menu                     Json[]    @default([])
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         String   @default("customer")
+  address      String?
+  orderHistory Json[]   @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Merchant {
+  id                 String   @id @default(uuid())
+  name               String
+  email              String   @unique
+  password           String
+  role               String   @default("merchant")
+  linkedRestaurantId String
+  restaurantName     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

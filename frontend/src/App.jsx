@@ -10,6 +10,7 @@ import Analytics from "./components/Analytics";
 import Guidelines from "./components/Guidelines";
 import Auth from "./components/Auth";
 import Orders from "./components/Orders";
+import { supabase } from "./supabaseClient";
 
 const restaurantMetaData = {
   "The Pizza Palace (Indiranagar)": {
@@ -77,6 +78,16 @@ function App() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    async function getTodos() {
+      const { data: todos, error } = await supabase.from('todos').select();
+      if (todos) setTodos(todos);
+      if (error) console.error("Supabase Todos Error:", error);
+    }
+    getTodos();
+  }, []);
 
   // Real-time geolocation states
   const [userCoords, setUserCoords] = useState(() => {
@@ -484,6 +495,17 @@ function App() {
             isLocating={isLocating}
             setIsLocating={setIsLocating}
           />
+
+          {todos && todos.length > 0 && (
+            <div style={{ padding: "15px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "14px", margin: "20px 0", color: "#166534" }}>
+              <h4 style={{ margin: "0 0 10px 0" }}>⚡ Data from Supabase ('todos' table):</h4>
+              <ul style={{ margin: 0, paddingLeft: "20px" }}>
+                {todos.map((todo) => (
+                  <li key={todo.id}>{todo.name || todo.title || JSON.stringify(todo)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <Categories
             selectedCategory={selectedCategory}
