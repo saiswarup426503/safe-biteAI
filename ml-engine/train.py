@@ -23,15 +23,18 @@ def main():
 
     # Start training process
     # Note: workers=0 is required on Windows to prevent multiprocessing issues.
-    # imgsz=640 is standard, epochs=15 is set for a quick verification run.
+    # imgsz=640 is standard, epochs=6 is set as requested.
     print("🏋️ Training custom object detection layers (apron, hairnet, gloves, pests)...")
     try:
         model.train(
             data=data_yaml_path,
-            epochs=3,
-            imgsz=320,
+            epochs=6,
+            imgsz=640,
             device="cpu",   # Uses CPU for compatibility. Change to device=0 if you have a CUDA GPU.
             workers=0,      # Prevents multi-threading errors on Windows
+            optimizer="AdamW",
+            cos_lr=True,
+            lr0=0.001,
             verbose=True
         )
         print("==================================================")

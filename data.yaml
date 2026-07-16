@@ -1,4 +1,4 @@
-path: dataset
+path: C:\Users\admin\OneDrive\Desktop\safe bite AI\dataset
 train: train/images
 val: valid/images
 test: test/images

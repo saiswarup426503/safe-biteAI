@@ -49,8 +49,8 @@ try:
         model = YOLO(custom_path)
         print(f"✅ Loaded custom trained YOLOv8 model from {custom_path}")
     else:
-        model = YOLO("yolov8n.pt")
-        print("✅ Loaded pre-trained YOLOv8n base model.")
+        model = YOLO("yolov8s.pt")
+        print("✅ Loaded pre-trained YOLOv8s base model.")
     yolo_available = True
 except Exception as e:
     print("⚠️ Ultralytics or YOLOv8 model failed to load. Operating in Simulation/Heuristics mode.")
